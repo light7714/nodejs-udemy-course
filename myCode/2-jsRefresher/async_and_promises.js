@@ -41,7 +41,9 @@ const fetchData = () => {
 			resolve("HIII this is THE resolve");
 		}, 1500);
 	});
-	return promise; //synchronous code, so it'll be returned immediately before the code in the promise is run, which will happen sometime later
+	return;
+
+	promise; //synchronous code, so it'll be returned immediately before the code in the promise is run, which will happen sometime later
 };
 
 setTimeout(() => {

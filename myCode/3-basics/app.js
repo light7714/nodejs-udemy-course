@@ -1,26 +1,10 @@
 const http = require("http");
 
-//req: request, res: response
-//the fn inside(create server callback) is run each time the server receives a request
-const server = http.createServer((req, res) => {
-	console.log(req);
-});
+//routes will contain requestHandler obj
+const routes = require("./routes");
 
-server.listen(3000);    //port: 3000, localhost by default
+console.log(routes.someText);
+//executing fn inside routes
+const server = http.createServer(routes.handler);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//committed
+server.listen(8000);
