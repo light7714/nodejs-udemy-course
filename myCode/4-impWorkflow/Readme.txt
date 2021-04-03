@@ -1,0 +1,1 @@
+Run install npm firstly to install node modules and dependencies

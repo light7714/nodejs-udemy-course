@@ -1,0 +1,16 @@
+{
+  "name": "4-impworkflow",
+  "version": "1.0.0",
+  "description": "Udemy Course",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js",
+    "sever-start": "node app.js"
+  },
+  "author": "Shubham",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
