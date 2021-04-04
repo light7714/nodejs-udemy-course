@@ -13,7 +13,7 @@ const app = express();
 //it can be keys or config items, which express doesnt understand, and it ingores them (see more about app.set(name, value))
 //we will set some reserved names here (config items) using which express behaves differently
 //view engine: for any dynamic template we're rendering, use the specified engine
-//pug ships with built in express support and auto reigsters it with express, so it works this way, for other engines its different
+//pug ships with built in express support and auto registers it with express, so it works this way, for other engines its different
 // app.set("view engine", "pug");
 
 //for EJS
