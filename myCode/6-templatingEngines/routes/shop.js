@@ -20,7 +20,7 @@ router.get("/", (req, res, next) => {
 	//shop means shop.pug (defines pug as default templating engine)
 	//like sendFile, this sends rendered html page
 	//we can pass data that shud be added in our view (passing js obj here)
-	res.render("shop", { prods: products, docTitle: "Shop" });
+	res.render("shop", { prods: products, pageTitle: "Shop", path: "/" });
 });
 
 module.exports = router;
