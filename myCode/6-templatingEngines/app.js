@@ -14,7 +14,10 @@ const app = express();
 //we will set some reserved names here (config items) using which express behaves differently
 //view engine: for any dynamic template we're rendering, use the specified engine
 //pug ships with built in express support and auto reigsters it with express, so it works this way, for other engines its different
-app.set("view engine", "pug");
+// app.set("view engine", "pug");
+
+//for EJS
+app.set("view engine", "ejs");
 //views: where to find dynamic views (docs: default value is views dir in project dir), but still writing explicitly here
 app.set("views", "views");
 

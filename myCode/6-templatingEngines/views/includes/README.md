@@ -1,0 +1,1 @@
+its opposite of layouts in ejs, in includes there are some shared files
