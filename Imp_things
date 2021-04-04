@@ -2,4 +2,5 @@
 - see resources at last in 3rd module, for deeper dive in theoetical concepts
 - To install package as production dependency: npm install package --save, as development dependency: npm install package --save-dev, globally: npm install pkg -g, npm install upadtes packages
 - To save space, you can delete node_modules folder in a project, and then whenever u wanna run it again, first run npm install, it'll install all dependencies
--in 4th module, 12th vid, I haven't installed nodemon globally so this command wont work in terminal (but used in package.json). Also in .vscode file, runtimeexecutable will not run as nodemon as it inst installed gloabally. Even if u insall nodemon globally, something else needs to be done to stop debugging too, so watch vid again.
+- in 4th module, 12th vid, I haven't installed nodemon globally so this command wont work in terminal (but used in package.json). Also in .vscode file, runtimeexecutable will not run as nodemon as it inst installed gloabally. Even if u insall nodemon globally, something else needs to be done to stop debugging too, so watch vid again.
+- installed pug, ejs and express-handlebars (npm install --save pug ejs express-handlebars) in 6th module, 4th vid
