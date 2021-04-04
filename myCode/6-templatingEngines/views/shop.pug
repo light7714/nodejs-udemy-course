@@ -1,0 +1,41 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(http-equiv="X-UA-Compatible", content="IE=edge")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        //can put any value we're passing in our view (#{value}), so it refers to value of the key docTitle
+        title #{docTitle}
+        link(rel="stylesheet", href="/css/main.css")
+        link(rel="stylesheet", href="/css/product.css")
+    body
+        //.something means div with class="something"
+        header.main-header
+            nav.main-header__nav
+                ul.main-header__item-list
+                    li.main-header__item
+                        a.active(href="/") Shop
+                    li.main-header__item
+                        //the text inside tags is separated by whitespace
+                        a(href="/admin/add-product") Add Product
+
+        main
+            if prods.length > 0
+                .grid
+                    //see each loop on pug
+                    each product in prods
+                        //concatenate multiple classes with .
+                        article.card.product-item
+                            header.card__header
+                                // h2 #{prods}
+                                h1.product__title #{product.title}
+                            .card__image
+                                img(src="https://cdn.pixabay.com/photo/2016/03/31/20/51/book-1296045_960_720.png", alt="A Book")
+                            .card__content
+                                h2.product__price $19.99
+                                p.product__description A very interesting book about so many even more interesting things!
+                            .card__actions
+                                button.btn Add to Cart
+
+            else
+                h1 No Products
