@@ -1,6 +1,6 @@
 //controller for product related logic
 
-const products = [];
+const Product = require("../models/product");
 
 //we get the Add product page here (it helps to get everything we need to add a product, so named this instead of getAddProductPage)
 exports.getAddProduct = (req, res, next) => {
@@ -11,10 +11,12 @@ exports.getAddProduct = (req, res, next) => {
 };
 
 exports.postAddProduct = (req, res, next) => {
-	products.push({ title: req.body.title });
+	const product = new Product(req.body.title);
+    product.save();
 	res.redirect("/");
 };
 
 exports.getProducts = (req, res, next) => {
+    const products = Product.fetchAll();
 	res.render("shop", { prods: products, pageTitle: "Shop", path: "/" });
 };
