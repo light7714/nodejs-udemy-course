@@ -12,11 +12,18 @@ exports.getAddProduct = (req, res, next) => {
 
 exports.postAddProduct = (req, res, next) => {
 	const product = new Product(req.body.title);
-    product.save();
-	res.redirect("/");
+	product.save();
+	// res.redirect("/");
+	res.redirect("/admin/add-product");
 };
 
 exports.getProducts = (req, res, next) => {
-    const products = Product.fetchAll();
-	res.render("shop", { prods: products, pageTitle: "Shop", path: "/" });
+	// const products = Product.fetchAll();
+	// res.render("shop", { prods: products, pageTitle: "Shop", path: "/" });
+
+	//fetchAll takes a callback, which will be called when products array is ready
+	Product.fetchAll((products) => {
+		console.log(products);
+		res.render("shop", { prods: products, pageTitle: "Shop", path: "/" });
+	});
 };
