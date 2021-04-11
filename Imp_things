@@ -5,3 +5,4 @@
 - in 4th module, 12th vid, I haven't installed nodemon globally so this command wont work in terminal (but used in package.json). Also in .vscode file, runtimeexecutable will not run as nodemon as it inst installed gloabally. Even if u insall nodemon globally, something else needs to be done to stop debugging too, so watch vid again.
 - installed pug and ejs (npm install --save pug ejs) in 6th module, 4th vid
 - not doing express-handlebars templating engine
+- added a nodemon config to ignore products.json
