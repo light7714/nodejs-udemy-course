@@ -21,7 +21,7 @@ exports.getProducts = (req, res, next) => {
 	// const products = Product.fetchAll();
 	// res.render("shop", { prods: products, pageTitle: "Shop", path: "/" });
 
-	//fetchAll takes a callback, which will be called when products array is ready
+	//fetchAll takes a callback, which will be called when products array is ready, that callback receives an array with products
 	Product.fetchAll((products) => {
 		console.log(products);
 		res.render("shop", { prods: products, pageTitle: "Shop", path: "/" });
