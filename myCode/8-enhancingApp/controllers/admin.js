@@ -1,29 +1,33 @@
-//controller for product related logic
+//controller for admin related logic
 
 const Product = require("../models/product");
 
 //we get the Add product page here (it helps to get everything we need to add a product, so named this instead of getAddProductPage)
 exports.getAddProduct = (req, res, next) => {
-	res.render("add-product", {
+	res.render("admin/add-product", {
 		pageTitle: "Add Product",
 		path: "/admin/add-product",
 	});
 };
 
 exports.postAddProduct = (req, res, next) => {
-	const product = new Product(req.body.title);
+	const title = req.body.title;
+	const imageUrl = req.body.imageUrl;
+	const price = req.body.price;
+	const description = req.body.description;
+	
+	const product = new Product(title, imageUrl, price, description);
 	product.save();
 	res.redirect("/");
-	// res.redirect("/admin/add-product");
 };
 
 exports.getProducts = (req, res, next) => {
-	// const products = Product.fetchAll();
-	// res.render("shop", { prods: products, pageTitle: "Shop", path: "/" });
-
-	//fetchAll takes a callback, which will be called when products array is ready, that callback receives an array with products
 	Product.fetchAll((products) => {
 		console.log(products);
-		res.render("shop", { prods: products, pageTitle: "Shop", path: "/" });
+		res.render("admin/products", {
+			prods: products,
+			pageTitle: "Admin Products",
+			path: "/admin/products",
+		});
 	});
 };
