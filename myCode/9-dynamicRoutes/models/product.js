@@ -31,7 +31,10 @@ module.exports = class Product {
 		getProductsFromFile((products) => {
 			products.push(this);
 			fs.writeFile(p, JSON.stringify(products), (err) => {
-				console.log("err in writefile: ", err);
+				if (err) {
+					return console.log("Error in writeFile", err);
+				}
+				console.log("Object written to file succesfully");
 			});
 		});
 	}
