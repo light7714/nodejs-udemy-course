@@ -23,10 +23,13 @@ exports.getProduct = (req, res, next) => {
 	const prodId = req.params.productId;
 	//callback fn receives the required product in findById
 	Product.findById(prodId, (product) => {
-		if (typeof product === "undefined") {
-			//*if no id matches (the prod id is not in products.json), product receives undefined, and we need to return error page
+		//*if no id matches (the prod id is not in products.json), product receives undefined, and we need to return error page
+		//* not in vid
+		//* can also use if (typeof product === "undefined")
+		if (!product) {
 			return errorController.get404(req, res, next);
 		}
+
 		//*passing /products path here because we still wanna highlight Products link in nav bar, as we're viewing details of a specific product
 		res.render("shop/product-detail", {
 			product: product,
