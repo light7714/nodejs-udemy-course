@@ -32,9 +32,9 @@ module.exports = class Product {
 			products.push(this);
 			fs.writeFile(p, JSON.stringify(products), (err) => {
 				if (err) {
-					return console.log("Error in writeFile", err);
+					console.log("Error in writeFile (product.js)", err);
 				}
-				console.log("Object written to file succesfully");
+				// console.log("Object written to file succesfully (product.js)");
 			});
 		});
 	}

@@ -1,6 +1,7 @@
 //controller for shop related logic
 
 const Product = require("../models/product");
+const Cart = require("../models/cart");
 
 const errorController = require("./error");
 
@@ -56,7 +57,9 @@ exports.getCart = (req, res, next) => {
 exports.postCart = (req, res, next) => {
 	//*productId was passed to request's body (in add to cart buttons)
 	const prodId = req.body.productId;
-	console.log(prodId);
+	Product.findById(prodId, (product) => {
+		Cart.addProduct(prodId, product.price);
+	});
 	res.redirect("/cart");
 };
 
