@@ -51,9 +51,29 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {
-	res.render("shop/cart", {
-		path: "/cart",
-		pageTitle: "Your cart",
+	//Cart.getCart takes a cb, which receives the entire cart, or null if no cart exists yet
+	Cart.getCart((cart) => {
+		Product.fetchAll((products) => {
+			const cartProducts = [];
+
+			for (product of products) {
+				//cartProductData contains product obj of cart model (with id and qty field), when the product exists in cart
+				const cartProductData = cart.products.find(
+					(prod) => prod.id === product.id
+				);
+				if (cartProductData) {
+					cartProducts.push({
+						productData: product,
+						qty: cartProductData.qty,
+					});
+				}
+			}
+			res.render("shop/cart", {
+				path: "/cart",
+				pageTitle: "Your cart",
+				products: cartProducts,
+			});
+		});
 	});
 };
 
@@ -64,6 +84,15 @@ exports.postCart = (req, res, next) => {
 		Cart.addProduct(prodId, product.price);
 	});
 	res.redirect("/cart");
+};
+
+//*rn its removing the product completely, even if qty > 1 (in vid also)
+exports.postCartDeleteProduct = (req, res, next) => {
+	const prodId = req.body.productId;
+	Product.findById(prodId, (product) => {
+		Cart.deleteProduct(prodId, product.price);
+		res.redirect("/cart")
+	});
 };
 
 exports.getOrders = (req, res, next) => {

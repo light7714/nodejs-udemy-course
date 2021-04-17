@@ -67,6 +67,8 @@ exports.postEditProduct = (req, res, next) => {
 		updatedPrice,
 		updatedDescription
 	);
+
+	// instead of below code, we should pass a callback to save fn, as we wanna redirect only after we're done updating prods, or we can still see old prod details. Will add later in vid
 	updatedProduct.save();
 	res.redirect("/admin/products");
 };
@@ -79,4 +81,13 @@ exports.getProducts = (req, res, next) => {
 			path: "/admin/products",
 		});
 	});
+};
+
+exports.postDeleteProduct = (req, res, next) => {
+	//sending productId (hidden input) in post req body (in admin products page where the delete btn is present)
+	const prodId = req.body.productId;
+
+	// instead of below code, we should pass a callback to deleteById, as we wanna redirect only after we're done, or we can still see products which have been deltd from cart and product json files. Will add later in vid
+	Product.deleteById(prodId);
+	res.redirect("/admin/products");
 };

@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const rootDir = require("../util/path");
+const Cart = require("./cart");
 
 const p = path.join(rootDir, "data", "products.json");
 
@@ -56,6 +57,22 @@ module.exports = class Product {
 		});
 	}
 
+	static deleteById(id) {
+		getProductsFromFile((products) => {
+			const product = products.find((prod) => prod.id === id);
+
+			//filter fn (synchronous) also loops thru the array one-by-one (each ele stored in prod, at a time), returns all those ele which match a condition in the return stmt (so all those ele which give true on the condition)
+			//to delete ele, we just want to return all ele which are not equal to id, the left out one is the product we wanted to dlt
+			const updatedProducts = products.filter((prod) => prod.id !== id);
+			fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
+				if (!err) {
+					//also remove the product from cart
+					Cart.deleteProduct(id, product.price);
+				}
+			});
+		});
+	}
+
 	static fetchAll(cb) {
 		getProductsFromFile(cb);
 	}
@@ -65,7 +82,7 @@ module.exports = class Product {
 			//The find() method returns the value of the first element in an array that passes a test (provided as a function), otherwise returns undefined
 			//here each product is passed one-by-one as p, it checks the condition in return stmt, returns the 1st value for which its true
 			//its a synchronous fn, so code even after this, works
-			const product = products.find((p) => p.id === id);
+			const product = products.find((prod) => prod.id === id);
 			cb(product);
 		});
 	}

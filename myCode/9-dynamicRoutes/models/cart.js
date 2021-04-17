@@ -59,4 +59,45 @@ module.exports = class Cart {
 			});
 		});
 	}
+
+	//can also refactor the code, but duplicating it here to make it easier to understand
+	//getting price as we need to update total cart price also
+	static deleteProduct(id, productPrice) {
+		fs.readFile(p, (err, fileContent) => {
+			if (err) {
+				return;
+			}
+
+			const cart = JSON.parse(fileContent);
+			const updatedCart = { ...cart };
+			const product = updatedCart.products.find((prod) => prod.id === id);
+			//if product doesnt exist in cart, then do nothing (used when calling deleteProduct in admin products view in delete button there)
+			if (!product) {
+				return;
+			}
+			const productQty = product.qty;
+
+			//deleting product from cart, for filter exaplanation see product.js model
+			updatedCart.products = updatedCart.products.filter(
+				(prod) => prod.id !== id
+			);
+			updatedCart.totalPrice =
+				updatedCart.totalPrice - productPrice * productQty;
+
+			fs.writeFile(p, JSON.stringify(updatedCart), (err) => {
+				console.log("Error in writeFile (cart.js)", err);
+			});
+		});
+	}
+
+	static getCart(cb) {
+		fs.readFile(p, (err, fileContent) => {
+			const cart = JSON.parse(fileContent);
+			if (err) {
+				cb(null);
+			} else {
+				cb(cart);
+			}
+		});
+	}
 };
