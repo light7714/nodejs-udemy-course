@@ -1,25 +1,8 @@
-const fs = require("fs");
-const path = require("path");
-
-const rootDir = require("../util/path");
+const db = require("../util/database");
 const Cart = require("./cart");
 
-const p = path.join(rootDir, "data", "products.json");
-
-//getProductsFromFile expects a callback function, that callback function expects an array
-const getProductsFromFile = (cb) => {
-	fs.readFile(p, (err, fileContent) => {
-		//if fileContent buffer is empty, then too if block must run
-		if (err || fileContent.length === 0) {
-			cb([]);
-		} else {
-			cb(JSON.parse(fileContent));
-		}
-	});
-};
-
 module.exports = class Product {
-	//for a new product, id is sent as null
+	//for a new product, id is sent as null, but stored as a serial number by db (when calling save method)
 	constructor(id, title, imageUrl, price, description) {
 		this.id = id;
 		this.title = title;
@@ -30,55 +13,24 @@ module.exports = class Product {
 
 	//*used for adding a new product as well as editing an existing product
 	save() {
-		getProductsFromFile((products) => {
-			//this.id != null for an existing product, we're updating existing product in this if block
-			if (this.id) {
-				const existingProductIndex = products.findIndex(
-					(prod) => prod.id === this.id
-				);
-				const updatedProducts = [...products];
-				//*when editing product (in some controller), we'll ofc make a Product obj, so the constructor initialisations are actually with updated fields the user entered. so we can directly replace old obj as existingProductIndex with `this` obj
-				updatedProducts[existingProductIndex] = this;
-				fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
-					if (err) {
-						console.log("Error in writeFile (product.js)", err);
-					}
-				});
-			} else {
-				//not gauranteed to be unique
-				this.id = Math.random().toString();
-				products.push(this);
-				fs.writeFile(p, JSON.stringify(products), (err) => {
-					if (err) {
-						console.log("Error in writeFile (product.js)", err);
-					}
-				});
-			}
-		});
+		//id is inserted automatically by mysql engine
+		//to stop sql injection attacks, we did this approach. The values in [] will be injected in the question marks by our mysql package, and it'll safely escape our input values to parse it for hidden sql commands and remove them. See README
+		//for eg. a user entered a malicious sql command in the title field, so if we directly write this.title in VALUES (), then that command will get run in our db, which we dont want.
+		return db.execute(
+			"INSERT INTO products (title, price, description, imageUrl) VALUES (?, ?, ?, ?)",
+			[this.title, this.price, this.description, this.imageUrl]
+		);
 	}
 
-	static deleteById(id) {
-		getProductsFromFile((products) => {
-			const product = products.find((prod) => prod.id === id);
+	static deleteById(id) {}
 
-			const updatedProducts = products.filter((prod) => prod.id !== id);
-			fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {
-				if (!err) {
-					//also remove the product from cart
-					Cart.deleteProduct(id, product.price);
-				}
-			});
-		});
+	//no callback passed here, we'll use promises now
+	static fetchAll() {
+		//returning a promise, the output here will directly get passed to then block!!
+		return db.execute("SELECT * FROM products");
 	}
 
-	static fetchAll(cb) {
-		getProductsFromFile(cb);
-	}
-
-	static findById(id, cb) {
-		getProductsFromFile((products) => {
-			const product = products.find((prod) => prod.id === id);
-			cb(product);
-		});
+	static findById(id) {
+		return db.execute("SELECT * FROM products WHERE products.id = ?", [id]);
 	}
 };

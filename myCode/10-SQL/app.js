@@ -17,14 +17,16 @@ const PORT = 8000;
 //we returned a connection pool promise in util/database.js, so we can use then and catch methods here
 //SEE README
 //could use callbacks in mysql package as well tho
-db.execute("SELECT * FROM products")
-	.then((result) => {
-		//result is a nested array with 1st ele as the row we wanted (of table), and next ele a metdata (buffer in my case)
-		console.log(result[0], result[1]);
-	})
-	.catch((err) => {
-		console.log("err in promise in app.js:", err);
-	});
+// db.execute("SELECT * FROM products")
+// 	.then((result) => {
+// 		//result is a nested array with 1st ele as the row we wanted (of table), and next ele a metdata (buffer in my case)
+// 		console.log(result[0], result[1]);
+// 	})
+// 	.catch((err) => {
+// 		console.log("err in promise in app.js:", err);
+// 	});
+
+
 
 app.set("view engine", "ejs");
 app.set("views", "views");

@@ -6,43 +6,59 @@ const Cart = require("../models/cart");
 const errorController = require("./error");
 
 exports.getProducts = (req, res, next) => {
-	Product.fetchAll((products) => {
-		res.render("shop/product-list", {
-			prods: products,
-			pageTitle: "All Products",
-			path: "/products",
+	Product.fetchAll()
+		.then(([rows, fieldData]) => {
+			res.render("shop/product-list", {
+				prods: rows,
+				pageTitle: "All Products",
+				path: "/products",
+			});
+		})
+		.catch((err) => {
+			console.log(
+				"err in fetchAll promise chain in shop.js controller:",
+				err
+			);
 		});
-	});
 };
 
 exports.getProduct = (req, res, next) => {
 	//*productId was passed by the req as in the route, we handled it as :productId in url
 	const prodId = req.params.productId;
-	Product.findById(prodId, (product) => {
-		//*if no id matches (the prod id is not in products.json), product receives undefined, and we need to return error page
-		//* not in vid
-		//* can also use if (typeof product === "undefined")
-		if (!product) {
-			return errorController.get404(req, res, next);
-		}
-
-		//*passing /products path here because we still wanna highlight Products link in nav bar, as we're viewing details of a specific product
-		res.render("shop/product-detail", {
-			product: product,
-			pageTitle: product.title,
-			path: "/products",
+	
+	//*err handling inside then() is not done yet, like for eg if no id matches (like someone entered something in the url), then will mysql give error????
+	Product.findById(prodId)
+		//if we dont write fieldData, it'll still work as it will fetch the 1st ele in product and leave the next ele
+		.then(([product, fieldData]) => {
+			//*product is still an array, with 1 ele tho, (as output of promise in findById is a nested array), but we need to pass the object, not the array, so passing product[0] in render
+			res.render("shop/product-detail", {
+				product: product[0],
+				pageTitle: product.title,
+				path: "/products",
+			});
+		})
+		.catch((err) => {
+			console.log("err in findById in shop.js controller:", err);
 		});
-	});
 };
 
 exports.getIndex = (req, res, next) => {
-	Product.fetchAll((products) => {
-		res.render("shop/index", {
-			prods: products,
-			pageTitle: "Shop",
-			path: "/",
+	//fetchAll() returns a promise, the output is directly passed to then block
+	Product.fetchAll()
+		//we receive a nested array with 2 array ele here, so we used destructuring to get the eles in rows(answer of query in fetchAll definition, so entries in products table) and fieldData (extra data)
+		.then(([rows, fieldData]) => {
+			res.render("shop/index", {
+				prods: rows,
+				pageTitle: "Shop",
+				path: "/",
+			});
+		})
+		.catch((err) => {
+			console.log(
+				"err in fetchAll promise chain in shop.js controller:",
+				err
+			);
 		});
-	});
 };
 
 exports.getCart = (req, res, next) => {
@@ -86,7 +102,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
 	const prodId = req.body.productId;
 	Product.findById(prodId, (product) => {
 		Cart.deleteProduct(prodId, product.price);
-		res.redirect("/cart")
+		res.redirect("/cart");
 	});
 };
 
