@@ -6,3 +6,8 @@
 - installed pug and ejs (npm install --save pug ejs) in 6th module, 4th vid
 - not doing express-handlebars templating engine
 - added a nodemon config to ignore products.json
+
+
+Installed packages yet:
+npm install express body-parser ejs mysql2 --save
+npm install nodemon --save-dev
