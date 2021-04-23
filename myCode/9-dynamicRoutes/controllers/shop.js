@@ -91,6 +91,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
 	const prodId = req.body.productId;
 	Product.findById(prodId, (product) => {
 		Cart.deleteProduct(prodId, product.price);
+		//*in getCart() there are no operations on main thread (after async ops) thats why i guess this works, but Ideally I think wwe should pass res.redirect as a callback (or use better methods like promises or async/await)
 		res.redirect("/cart")
 	});
 };

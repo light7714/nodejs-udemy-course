@@ -21,6 +21,7 @@ const getProductsFromFile = (cb) => {
 module.exports = class Product {
 	//for a new product, id is sent as null
 	constructor(id, title, imageUrl, price, description) {
+		// id is null cuz newly making a product, it'll be updated in save()
 		this.id = id;
 		this.title = title;
 		this.imageUrl = imageUrl;

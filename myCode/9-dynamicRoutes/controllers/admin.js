@@ -68,7 +68,7 @@ exports.postEditProduct = (req, res, next) => {
 		updatedDescription
 	);
 
-	// instead of below code, we should pass a callback to save fn, as we wanna redirect only after we're done updating prods, or we can still see old prod details. Will add later in vid
+	// instead of below code, we should pass a callback to save fn, as we wanna redirect only after we're done updating prods, or we can still see old prod details. Will add later in course
 	updatedProduct.save();
 	res.redirect("/admin/products");
 };
