@@ -26,7 +26,7 @@ exports.getProduct = (req, res, next) => {
 	//*productId was passed by the req as in the route, we handled it as :productId in url
 	const prodId = req.params.productId;
 	
-	//*err handling inside then() is not done yet, like for eg if no id matches (like someone entered something in the url), then will mysql give error????
+	//*err handling inside then() is not done yet, like for eg if no id matches (like someone entered something in the url), then will mysql give error???? ANS: product[0] is undefined
 	Product.findById(prodId)
 		//if we dont write fieldData, it'll still work as it will fetch the 1st ele in product and leave the next ele
 		.then(([product, fieldData]) => {
