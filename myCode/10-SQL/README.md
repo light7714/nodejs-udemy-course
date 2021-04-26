@@ -1,7 +1,8 @@
 ## Notes:
 
 Important sites are saved in pinterest <br>
-Only changing the index, products and product detail page in this module (also not changing cart details), so other pages wont work
+Only changing the index, products and product detail page in this module (also not changing cart details), so other pages wont work <br>
+Created a table products in mysql manually
 
 ## MySQL community edition
 
