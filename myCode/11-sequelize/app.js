@@ -32,7 +32,7 @@ app.use(errorController.get404);
 sequelize
 	.sync()
 	.then((result) => {
-		//we see the executed query in console even if result is not logged
+		//*we see the executed query in console even if result is not logged
 		// console.log(result);
 		app.listen(PORT, () => {
 			console.log(`Listening on port ${PORT}`);

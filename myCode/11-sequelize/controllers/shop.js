@@ -4,21 +4,19 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 const errorController = require('./error');
+const sequelize = require('../util/database');
 
 exports.getProducts = (req, res, next) => {
-	Product.fetchAll()
-		.then(([rows, fieldData]) => {
+	Product.findAll()
+		.then((products) => {
 			res.render('shop/product-list', {
-				prods: rows,
+				prods: products,
 				pageTitle: 'All Products',
 				path: '/products',
 			});
 		})
 		.catch((err) => {
-			console.log(
-				'err in fetchAll promise chain in shop.js controller:',
-				err
-			);
+			console.log('err in findAll fn in shop.js:', err);
 		});
 };
 
@@ -26,38 +24,49 @@ exports.getProduct = (req, res, next) => {
 	//*productId was passed by the req as in the route, we handled it as :productId in url
 	const prodId = req.params.productId;
 
-	//*err handling inside then() is not done yet, like for eg if no id matches (like someone entered something in the url), then will mysql give error???? ANS: product[0] is undefined
-	Product.findById(prodId)
-		//if we dont write fieldData, it'll still work as it will fetch the 1st ele in product and leave the next ele
-		.then(([product, fieldData]) => {
-			//*product is still an array, with 1 ele tho, (as output of promise in findById is a nested array), but we need to pass the object, not the array, so passing product[0] in render
+	//in vid its Product.findByID, but its replaced in findByPk in sequelize v5
+	Product.findByPk(prodId)
+		//err handling not done rn, if no id matches then product is undefined
+		.then((product) => {
 			res.render('shop/product-detail', {
-				product: product[0],
+				product: product,
 				pageTitle: product.title,
 				path: '/products',
 			});
 		})
 		.catch((err) => {
-			console.log('err in findById in shop.js controller:', err);
+			console.log('err in findByPk in shop.js controller:', err);
 		});
+
+	//OR ANOTHER METHOD to findByPk()
+	//tho we know we should get 1 item, we still get an array here(with 1 item in it) as it can return multiple items
+	// Product.findAll({ where: { id: prodId } })
+	// 	.then((products) => {
+	// 		res.render('shop/product-detail', {
+	// 			product: products[0],
+	// 			pageTitle: products[0].title,
+	// 			path: '/products',
+	// 		});
+	// 	})
+	// 	.catch((err) => {
+	// 		console.log('err in findById in shop.js controller:', err);
+	// 	});
 };
 
 exports.getIndex = (req, res, next) => {
-	//fetchAll() returns a promise, the output is directly passed to then block
-	Product.fetchAll()
-		//we receive a nested array with 2 array ele here, so we used destructuring to get the eles in rows(answer of query in fetchAll definition, so entries in products table) and fieldData (extra data)
-		.then(([rows, fieldData]) => {
+	//findAll is a sequelize model fn, without sequelize we defined our own fetchAll method in the model, this time we use sequelize methods
+	//could pass options as a js obj
+	//assuming we get an array of products
+	Product.findAll()
+		.then((products) => {
 			res.render('shop/index', {
-				prods: rows,
+				prods: products,
 				pageTitle: 'Shop',
 				path: '/',
 			});
 		})
 		.catch((err) => {
-			console.log(
-				'err in fetchAll promise chain in shop.js controller:',
-				err
-			);
+			console.log('err in findAll fn in shop.js:', err);
 		});
 };
 
