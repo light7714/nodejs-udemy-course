@@ -71,48 +71,96 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {
-	//cart received is null if no cart exists
-	Cart.getCart((cart) => {
-		Product.fetchAll((products) => {
-			const cartProducts = [];
-
-			for (product of products) {
-				//cartProductData contains product obj of cart model (with id and qty field), when the product exists in cart
-				const cartProductData = cart.products.find(
-					(prod) => prod.id === product.id
-				);
-				if (cartProductData) {
-					cartProducts.push({
-						productData: product,
-						qty: cartProductData.qty,
-					});
-				}
-			}
+	req.user
+		.getCart()
+		.then((cart) => {
+			// special method added by sequelize
+			return cart.getProducts();
+		})
+		.then((products) => {
 			res.render('shop/cart', {
 				path: '/cart',
 				pageTitle: 'Your cart',
-				products: cartProducts,
+				products: products,
 			});
+			// console.log(products);
+		})
+		.catch((err) => {
+			console.log('err in req.user.getCart in shop.js:', err);
 		});
-	});
 };
 
 exports.postCart = (req, res, next) => {
 	//*productId was passed to request's body (in add to cart buttons)
 	const prodId = req.body.productId;
-	Product.findById(prodId, (product) => {
-		Cart.addProduct(prodId, product.price);
-	});
-	res.redirect('/cart');
+	let fetchedCart;
+	let newQuantity = 1;
+
+	//retreiving the cart for a specific user (who made postCart req)
+	req.user
+		.getCart()
+		.then((cart) => {
+			fetchedCart = cart;
+			//*finding the products for this user only, and only those products with the prodId
+			//remember, getProducts fn is only avlbl on the cart obj made by sequelize, not on Cart model
+			return cart.getProducts({ where: { id: prodId } });
+		})
+		.then((products) => {
+			let product;
+			//if the product with the particular prodId exists in cart
+			if (products.length > 0) {
+				product = products[0];
+			}
+
+			//product is already in cart
+			if (product) {
+				// sequelize gives us a junction table key (as products and cart tables are linked thru cart-item table), so in this case, a cartItem attribute, and cart-item table holds other cart-item speicific attributes like the quantity attribute
+				const oldQuantity = product.cartItem.quantity;
+				newQuantity = oldQuantity + 1;
+
+				return product;
+			}
+
+			//product not in cart
+			//having nested then call as it makes things easier here
+			return Product.findByPk(prodId);
+		})
+		.then((product) => {
+			//another method added by sequelize for many to many relationships, will add the product id to the junction table (cart-item here)
+			//*we also need to add the qty field, only passing product will only add the productId in cart-item table.
+			//no need of return here i think, but it'll work
+			return fetchedCart.addProduct(product, {
+				through: { quantity: newQuantity },
+			});
+		})
+		.then(() => {
+			res.redirect('/cart');
+		})
+		.catch((err) => {
+			console.log('err in req.user.getCart in shop.js:', err);
+		});
 };
 
 //*rn its removing the product completely, even if qty > 1 (in vid also)
 exports.postCartDeleteProduct = (req, res, next) => {
 	const prodId = req.body.productId;
-	Product.findById(prodId, (product) => {
-		Cart.deleteProduct(prodId, product.price);
-		res.redirect('/cart');
-	});
+	req.user
+		.getCart()
+		.then((cart) => {
+			//*finding the products for this user only, and only those products with the prodId
+			return cart.getProducts({ where: { id: prodId } });
+		})
+		.then((products) => {
+			const product = products[0];
+			// removing the item from cartItem table
+			return product.cartItem.destroy();
+		})
+		.then((result) => {
+			res.redirect('/cart');
+		})
+		.catch((err) => {
+			console.log('err in req.user.getCart in shop.js:', err);
+		});
 };
 
 exports.getOrders = (req, res, next) => {

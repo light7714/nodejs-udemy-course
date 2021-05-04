@@ -18,22 +18,35 @@ exports.postAddProduct = (req, res, next) => {
 	const price = req.body.price;
 	const description = req.body.description;
 
-	//*create creates a new ele based on that model and saves it to the db. build method also creates an obj, but a js obj, and we need to save it manually
-	//*id is inserted automatically ofc
-	Product.create({
-		//*lhs title refers to attribute defined in model, rhs refers to the const title above
-		title: title,
-		price: price,
-		imageUrl: imageUrl,
-		description: description,
-	})
+	// //*create creates a new ele based on that model and saves it to the db. build method also creates an obj, but a js obj, and we need to save it manually
+	// //*id is inserted automatically ofc
+	// Product.create({
+	// 	//*lhs title refers to attribute defined in model, rhs refers to the const title above
+	// 	title: title,
+	// 	price: price,
+	// 	imageUrl: imageUrl,
+	// 	description: description,
+	// 	//extra field added after association to user table
+	// 	userId: req.user.id
+	// })
+
+	//**instead of the above method, where we pass userId manually in Product.create(), we can use another method. the req.user object (created in app.js ) has many methods avlbl, and one method in create is createProduct(), a special method added by sequalize just because we made a "product belongs to (many) user" association.
+	//inside we pass the product data, which cant be inferred by sequelize due to the association (so everything except userID (and id and timestamps ofc))
+	req.user
+		.createProduct({
+			// *lhs title refers to attribute defined in model, rhs refers to the const title above
+			title: title,
+			price: price,
+			imageUrl: imageUrl,
+			description: description,
+		})
 		.then((result) => {
 			// console.log(result);
 			console.log('created Product');
 			res.redirect('/admin/products');
 		})
 		.catch((err) => {
-			console.log('err in create method in admin.js:', err);
+			console.log('err in createProduct in admin.js:', err);
 		});
 };
 
@@ -46,10 +59,15 @@ exports.getEditProduct = (req, res, next) => {
 	//getting productId from the url
 	const prodId = req.params.productId;
 
-	Product.findByPk(prodId)
-		.then((product) => {
+	//To only get the product which the user has created, we use sequelize special method getProducts in req.user. will return array
+	req.user
+		.getProducts({ where: { id: prodId } })
+		// Product.findByPk(prodId)		//old approach
+		//array of 1 ele here
+		.then((products) => {
 			//*if no id matches (the prod id is not in products.json), product receives undefined, and we need to return error page
 			//* in vid we're redirecting to index page
+			const product = products[0];
 			if (!product) {
 				return errorController.get404(req, res, next);
 			}
@@ -62,10 +80,11 @@ exports.getEditProduct = (req, res, next) => {
 			});
 		})
 		.catch((err) => {
-			console.log('err in findByPk in admin.js:', err);
+			console.log('err in getProducts in admin.js:', err);
 		});
 };
 
+//not using new approach in above getEditProduct, as assuming when user clicks edit button, only his/her products have been loaded for him/her to click edit on them
 exports.postEditProduct = (req, res, next) => {
 	const prodId = req.body.productId;
 	const updatedTitle = req.body.title;
@@ -96,7 +115,10 @@ exports.postEditProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-	Product.findAll()
+	// Product.findAll()	//old approach
+	//getting all products for a user (who created those products)
+	req.user
+		.getProducts()
 		.then((products) => {
 			res.render('admin/products', {
 				prods: products,
@@ -109,6 +131,7 @@ exports.getProducts = (req, res, next) => {
 		});
 };
 
+//not using new approach like in above getEditProduct, as assuming when user clicks delete button, only his/her products have been loaded for him/her to click delete on them
 exports.postDeleteProduct = (req, res, next) => {
 	//sending productId (hidden input) in post req body (in admin products page where the delete btn is present)
 	const prodId = req.body.productId;
@@ -122,7 +145,7 @@ exports.postDeleteProduct = (req, res, next) => {
 			return product.destroy();
 		})
 		.then((result) => {
-			console.log('Destoryed the Product');
+			console.log('Destroyed the Product');
 			res.redirect('/admin/products');
 		})
 		.catch((err) => {
