@@ -12,7 +12,9 @@ const sequelize = require('./util/database');
 const Product = require('./models/product');
 const User = require('./models/user');
 const Cart = require('./models/cart');
-const CartItem = require('./models/cartItem');
+const CartItem = require('./models/cart-item');
+const Order = require('./models/order');
+const OrderItem = require('./models/order-item');
 
 const app = express();
 
@@ -62,6 +64,14 @@ Cart.belongsTo(User);
 Cart.belongsToMany(Product, { through: CartItem });
 Product.belongsToMany(Cart, { through: CartItem });
 
+//1 order belongs to 1 user only, but a user can have many orders. so a new key userId will be added to Order
+Order.belongsTo(User);
+User.hasMany(Order);
+
+//*many to many realtionship here (didnt write the inverse that Product.belongsToMany(Order, ...) but it means the same here)
+//*OrderItem will contain an id, quantity (which we defined), a prodId and an orderId
+Order.belongsToMany(Product, { through: OrderItem });
+
 //sync is aware of all models we defined (like in product model we used sequelize.define()) and it then creates tables for them, so it syncs our models to the db by creating appropriate tables and relations
 //it only creates tables if they dont exist, else just remaps to those tables (tho we can tell it to make new table each time (see docs maybe))
 //automatically makes model name (in define fn) as plural in table name, so product model is named as products in table, while products is kept same
@@ -69,6 +79,7 @@ Product.belongsToMany(Cart, { through: CartItem });
 //* in short, sync creates tables and relations for the models we defined (sequelize.define()), but remaps to old tables if they exist
 
 //*setting force: true as when relations were added in code, product table already existed, so this setting overrides the table with new info. We dont use it in production as we dont always want to overwrite tables. so I only set it true once, when making relations, and then removed it, otherwise all tables will be dropped and newly made each time
+let fetchedUser;
 sequelize
 	// .sync({force: true})
 	.sync()
@@ -92,12 +103,19 @@ sequelize
 		//* tho technically we can just return user, as anything return in a then block is wrapped into a new promise automatically
 		return user;
 	})
+	//*also checking if a cart associated with the particular user is already there or not (not in vid) 
+	//or i could have used Promise.resolve()
 	.then((user) => {
-		// console.log(user);
-
-		//* not checking here if a cart for user has already been created, should check or it'll make multiple carts for each user
-		//no need of passing any data as cart only has an autoincrement id
-		return user.createCart();
+		fetchedUser = user;
+		return user.getCart();
+	})
+	.then((cart) => {
+		// console.log('hello', cart);
+		if (!cart) {
+			//no need of passing any data as cart only has an autoincrement id
+			return fetchedUser.createCart();
+		}
+		return cart;
 	})
 	.then((cart) => {
 		app.listen(PORT, () => {
