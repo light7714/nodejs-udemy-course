@@ -33,105 +33,86 @@ exports.postAddProduct = (req, res, next) => {
 		});
 };
 
-// exports.getEditProduct = (req, res, next) => {
-// 	//*only when edit is set somewhere in query params in the url, we'll get its value as string in editMode (so a string "true"). If its not set, we'll get undefined (which is treated as false in a boolean check)
-// 	const editMode = req.query.edit;
-// 	if (!editMode) {
-// 		return res.redirect('/');
-// 	}
-// 	//getting productId from the url
-// 	const prodId = req.params.productId;
+exports.getEditProduct = (req, res, next) => {
+	//*only when edit is set somewhere in query params in the url, we'll get its value as string in editMode (so a string "true"). If its not set, we'll get undefined (which is treated as false in a boolean check)
+	const editMode = req.query.edit;
+	if (!editMode) {
+		return res.redirect('/');
+	}
+	//getting productId from the url
+	const prodId = req.params.productId;
 
-// 	//To only get the product which the user has created, we use sequelize special method getProducts in req.user. will return array
-// 	req.user
-// 		.getProducts({ where: { id: prodId } })
-// 		// Product.findByPk(prodId)		//old approach
-// 		//array of 1 ele here
-// 		.then((products) => {
-// 			//*if no id matches (the prod id is not in products.json), product receives undefined, and we need to return error page
-// 			//* in vid we're redirecting to index page
-// 			const product = products[0];
-// 			if (!product) {
-// 				return errorController.get404(req, res, next);
-// 			}
+	Product.findById(prodId)
+		.then((product) => {
+			//*if no id matches (the prod id is not in products.json), product receives undefined, and we need to return error page
+			//* in vid we're redirecting to index page
+			if (!product) {
+				return errorController.get404(req, res, next);
+			}
 
-// 			res.render('admin/edit-product', {
-// 				pageTitle: 'Edit Product',
-// 				path: '/admin/edit-product',
-// 				editing: editMode,
-// 				product: product,
-// 			});
-// 		})
-// 		.catch((err) => {
-// 			console.log('err in getProducts in admin.js:', err);
-// 		});
-// };
+			res.render('admin/edit-product', {
+				pageTitle: 'Edit Product',
+				path: '/admin/edit-product',
+				editing: editMode,
+				product: product,
+			});
+		})
+		.catch((err) => {
+			console.log('err in findById in admin.js:', err);
+		});
+};
 
-// //not using new approach in above getEditProduct, as assuming when user clicks edit button, only his/her products have been loaded for him/her to click edit on them
-// exports.postEditProduct = (req, res, next) => {
-// 	const prodId = req.body.productId;
-// 	const updatedTitle = req.body.title;
-// 	const updatedPrice = req.body.price;
-// 	const updatedImageUrl = req.body.imageUrl;
-// 	const updatedDescription = req.body.description;
+exports.postEditProduct = (req, res, next) => {
+	const prodId = req.body.productId;
+	const updatedTitle = req.body.title;
+	const updatedPrice = req.body.price;
+	const updatedImageUrl = req.body.imageUrl;
+	const updatedDescription = req.body.description;
 
-// 	Product.findByPk(prodId)
-// 		.then((product) => {
-// 			product.title = updatedTitle;
-// 			product.price = updatedPrice;
-// 			product.imageUrl = updatedImageUrl;
-// 			product.description = updatedDescription;
+	const product = new Product(
+		updatedTitle,
+		updatedPrice,
+		updatedDescription,
+		updatedImageUrl,
+		prodId
+	);
 
-// 			//save method given by sequelize, saves it back to the db, if product doesnt exist it'll create new, else overwrite
-// 			//*instead of attaching a then and catch block to save() (which will make nesting look ugly), we return the promise returned by save method, and add a then block after this block is over, and handle this return there
-// 			return product.save();
-// 		})
-// 		.then((result) => {
-// 			console.log('Updated the Product!');
-// 			//* if we do have an err, we wont get redirected.. we'll learn how to deal with this later
-// 			res.redirect('/admin/products');
-// 		})
-// 		.catch((err) => {
-// 			//this block catches err for both the findByPk promise and the save promise
-// 			console.log('err in findByPk, save in admin.js', err);
-// 		});
-// };
+	product
+		.save()
+		.then((result) => {
+			console.log('Updated the Product!');
+			//* if we do have an err, we wont get redirected.. we'll learn how to deal with this later
+			res.redirect('/admin/products');
+		})
+		.catch((err) => {
+			console.log('err in save in admin.js', err);
+		});
+};
 
-// exports.getProducts = (req, res, next) => {
-// 	// Product.findAll()	//old approach
-// 	//getting all products for a user (who created those products)
-// 	req.user
-// 		.getProducts()
-// 		.then((products) => {
-// 			res.render('admin/products', {
-// 				prods: products,
-// 				pageTitle: 'Admin Products',
-// 				path: '/admin/products',
-// 			});
-// 		})
-// 		.catch((err) => {
-// 			console.log('err in findAll in admin js:', err);
-// 		});
-// };
+exports.getProducts = (req, res, next) => {
+	Product.fetchAll()
+		.then((products) => {
+			res.render('admin/products', {
+				prods: products,
+				pageTitle: 'Admin Products',
+				path: '/admin/products',
+			});
+		})
+		.catch((err) => {
+			console.log('err in findAll in admin js:', err);
+		});
+};
 
-// //not using new approach like in above getEditProduct, as assuming when user clicks delete button, only his/her products have been loaded for him/her to click delete on them
-// exports.postDeleteProduct = (req, res, next) => {
-// 	//sending productId (hidden input) in post req body (in admin products page where the delete btn is present)
-// 	const prodId = req.body.productId;
+exports.postDeleteProduct = (req, res, next) => {
+	//sending productId (hidden input) in post req body (in admin products page where the delete btn is present)
+	const prodId = req.body.productId;
 
-// 	//we can call destroy method and pass condition in a js obj inside it
-// 	// Product.destroy({where: });
-// 	//OR we do below
-
-// 	Product.findByPk(prodId)
-// 		.then((product) => {
-// 			return product.destroy();
-// 		})
-// 		.then((result) => {
-// 			console.log('Destroyed the Product');
-// 			res.redirect('/admin/products');
-// 		})
-// 		.catch((err) => {
-// 			console.log('err in findByPk, destroy in admin js:', err);
-// 		});
-// };
+	Product.deleteById(prodId)
+		.then(() => {
+			console.log('Destroyed the Product');
+			res.redirect('/admin/products');
+		})
+		.catch((err) => {
+			console.log('err in deleteById in admin.js:', err);
+		});
+};

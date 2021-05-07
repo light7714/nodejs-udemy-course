@@ -29,7 +29,7 @@
 
             <!-- when editing product, we're sending product id too thru post req in the req body -->
             <% if (editing) { %>
-                <input type="hidden" value="<%= product.id %>" name="productId">
+                <input type="hidden" value="<%= product._id %>" name="productId">
             <% } %>
 
             <!--*editing is actually string "true" -->

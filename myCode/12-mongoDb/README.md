@@ -12,3 +12,5 @@
 -> the part after .net/ and before ? mark is the database name we wanna connect to in srv address. <br>
 
 ->We dont have to setup databases (or collection even) beforehand in mongoDb, like here we didnt create shop db anywhere still we are connecting to it. mongodb will automatically create one if it doesnt exist. we can also enter db name in client.db(); (like client.db('test')), and then it will connect to test db instead of the db name written in srv address, regardless of which db is written in srv address. <br>
+
+-> _id is actually stored in mongodb as ObjectId type (a type existing due to BSON maybe) (can see in mongodb compass) so we cant just equate ObjectId  with a string (prodId in product.js)
