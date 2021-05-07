@@ -1,0 +1,1 @@
+-> Js file with mongodb atlas password is not exposed in github, you need to have that file before running the project
