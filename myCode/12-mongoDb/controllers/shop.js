@@ -1,16 +1,9 @@
 //controller for shop related logic
 
 const Product = require('../models/product');
-//a cart and an order are both realted to user, to we will directly use them thru req.user, instead of importing them
-// const Cart = require('../models/cart');
-// const Order = require('../models/order');
-
-const errorController = require('./error');
-const sequelize = require('../util/database');
-const Order = require('../models/order');
 
 exports.getProducts = (req, res, next) => {
-	Product.findAll()
+	Product.fetchAll()
 		.then((products) => {
 			res.render('shop/product-list', {
 				prods: products,
@@ -19,7 +12,7 @@ exports.getProducts = (req, res, next) => {
 			});
 		})
 		.catch((err) => {
-			console.log('err in findAll fn in shop.js:', err);
+			console.log('err in fetchAll fn in shop.js:', err);
 		});
 };
 
@@ -27,8 +20,7 @@ exports.getProduct = (req, res, next) => {
 	//*productId was passed by the req as in the route, we handled it as :productId in url
 	const prodId = req.params.productId;
 
-	//in vid its Product.findByID, but its replaced in findByPk in sequelize v5
-	Product.findByPk(prodId)
+	Product.findById(prodId)
 		//err handling not done rn, if no id matches then product is undefined
 		.then((product) => {
 			res.render('shop/product-detail', {
@@ -38,29 +30,15 @@ exports.getProduct = (req, res, next) => {
 			});
 		})
 		.catch((err) => {
-			console.log('err in findByPk in shop.js controller:', err);
+			console.log('err in findById in shop.js controller:', err);
 		});
-
-	//OR ANOTHER METHOD to findByPk()
-	//tho we know we should get 1 item, we still get an array here(with 1 item in it) as it can return multiple items
-	// Product.findAll({ where: { id: prodId } })
-	// 	.then((products) => {
-	// 		res.render('shop/product-detail', {
-	// 			product: products[0],
-	// 			pageTitle: products[0].title,
-	// 			path: '/products',
-	// 		});
-	// 	})
-	// 	.catch((err) => {
-	// 		console.log('err in findById in shop.js controller:', err);
-	// 	});
 };
 
 exports.getIndex = (req, res, next) => {
 	//findAll is a sequelize model fn, without sequelize we defined our own fetchAll method in the model, this time we use sequelize methods
 	//could pass options as a js obj
 	//assuming we get an array of products
-	Product.findAll()
+	Product.fetchAll()
 		.then((products) => {
 			res.render('shop/index', {
 				prods: products,
@@ -69,7 +47,7 @@ exports.getIndex = (req, res, next) => {
 			});
 		})
 		.catch((err) => {
-			console.log('err in findAll fn in shop.js:', err);
+			console.log('err in fetchAll fn in shop.js:', err);
 		});
 };
 

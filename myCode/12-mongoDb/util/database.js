@@ -8,22 +8,43 @@ const MongoClient = mongodb.MongoClient;
 
 PASSWORD = 'shubham1234';
 
+//underscore just to signal it'll be used internally in this file
+let _db;
+
+//we dont wanna make connection everytime a code wants to interact with db, so mongoConnect connects to the db once, and getDb returns the access to the connected db if it exists.
+
 const mongoConnect = (callback) => {
 	//creates a connection to mongodb, it takes a url to connect, which we got from mongodb atlas (srv address)
-	//not directly exporting this, maybe cuz its a promise?? (maybe cus even if it resolves later after exporting, we cant be sure the file calling this would have code which waits for resolution of promise??)
-	//useUnifiedTopology: true is just for removing warning for now
+	//*useUnifiedTopology: true is just for removing warning for now
+	//the part after .net/ and before ? mark is the database name we wanna connect to (rn its shop, so we'll be connecting to shop db).
+	//we dont have to setup databases beforehand in mongoDb, like here we didnt create shop db anywhere still we are connecting to it. mongodb will automatically create one if it doesnt exist
+	//*we can also enter db name in client.db(); (like client.db('test')), and then it will connect to test db instead of the db name written in srv address, regardless of which db is written in srv address.
+	//remember, database is different than collection, see README
 	MongoClient.connect(
-		`mongodb+srv://shubham_temp:${privateFile.PASSWORD}@cluster0.b6e3a.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`,
+		`mongodb+srv://shubham_temp:${privateFile.PASSWORD}@cluster0.b6e3a.mongodb.net/shop?retryWrites=true&w=majority`,
 		{ useUnifiedTopology: true }
 	)
-		//we'll receive the client object here, and we wanna pass it to app.js where we call mongoConnect
 		.then((client) => {
 			console.log('Connected to mongodb!');
-			callback(client);
+			//storing the connection (or access) to the database in _db
+			_db = client.db();
+			callback();
 		})
 		.catch((err) => {
 			console.log('err in connect in database.js:', err);
 		});
 };
 
-module.exports = mongoConnect;
+//getDb returns access to that connected db if it exists.
+//*mongodb behind the scenes manages it with connection pooling, where it'll ensure there are multiple connections for multiple simultaneous interactions with the db
+const getDb = () => {
+	if (_db) {
+		return _db;
+	}
+	throw 'No database found!';
+}
+
+//so mongoConnect is for connecting and then storing the connection to the db. it'll be called in app.js, so it'll keep running (the connection is running, as we stored it), we dont have to connect everytime.
+exports.mongoConnect = mongoConnect;
+
+exports.getDb = getDb;
