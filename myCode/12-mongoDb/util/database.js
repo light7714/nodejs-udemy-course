@@ -6,8 +6,6 @@ const privateFile = require('./private');
 
 const MongoClient = mongodb.MongoClient;
 
-PASSWORD = 'shubham1234';
-
 //underscore just to signal it'll be used internally in this file
 let _db;
 
