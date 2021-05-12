@@ -5,17 +5,15 @@
     <body>
         <%- include('../includes/navigation.ejs') %>
         <main>
-            <!-- products here sent by getCart controller is an array of objs with keys productData and qty-->
+            <!-- products here sent by getCart controller is an array of objs, with all product related attributes title, price, description, imageUrl, and also a quantity field (qty in cart)-->
             <% if (products.length > 0) { %>
                 <ul class="cart__item-list">
-                    <!-- p is the obj with keys productData and qty -->
                     <% products.forEach((p) => { %>
                         <li class="cart__item">
                             <h1><%= p.title %></h1>
-                            <!-- sequelize gives us a junction table key (as products and cart tables are linked thru cart-item table), so in this case, a cartItem attribute, and cart-item table holds the quantity attribute -->
-                            <h2>Quantity: <%= p.cartItem.quantity %></h2>
+                            <h2>Quantity: <%= p.quantity %></h2>
                             <form action="/cart-delete-item" method="POST">
-                                <input type="hidden" value="<%= p.id %>" name="productId">
+                                <input type="hidden" value="<%= p._id %>" name="productId">
                                 <button class="btn danger" type="submit">Delete</button>
                             </form>
                         </li>
