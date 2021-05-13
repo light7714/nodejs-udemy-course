@@ -144,9 +144,79 @@ class User {
 				.updateOne(
 					{ _id: new ObjectId(this._id) },
 					//overwriting cart attribute only, keeping all other fields same for the user
-					{ $set: { cart: {items: updatedCartItems} } }
+					{ $set: { cart: { items: updatedCartItems } } }
 				)
 		);
+	}
+
+	//*adds an orders, also empties the cart
+	/*An order will look like:
+	_id:~
+	items:
+		{_id(product):~
+		title:~
+		price:~
+		description:~
+		imageUrl:~
+		quantity:~
+		},
+		{...}
+	user:
+		{_id(user):~
+		name:~
+		}
+	*/
+	addOrder() {
+		const db = getDb();
+
+		return (
+			this.getCart()
+				//we get the cart products with quantity field included
+				.then((products) => {
+					//we need product data (some) as well to display on the orders page
+					//*so items here is an array of products with all product info and the quantity
+					///8=*even if product data changes here, we dont care, we wont update it (acc to vid) cuz here, we do want the snapshot of (old) products
+					const order = {
+						items: products,
+						//*duplicating data.. as we dont need to change it too often.. for processed orders, even if the username did change, it doesnt affect too much if we dont change name in the processed order
+						user: {
+							_id: new ObjectId(this._id),
+							name: this.name,
+						},
+					};
+
+					return db.collection('orders').insertOne(order);
+				})
+				.then((result) => {
+					//*emptying the cart now (already inserted it into order before clearing it)
+					//in user obj
+					this.cart = { items: [] };
+
+					//in db
+					return db
+						.collection('users')
+						.updateOne(
+							{ _id: new ObjectId(this._id) },
+							{ $set: { cart: { items: [] } } }
+						);
+				})
+				.catch((err) => {
+					console.log(
+						'err in getCart() inside addOrder() in user.js:',
+						err
+					);
+				})
+		);
+	}
+
+	getOrders() {
+		const db = getDb();
+		//finding all orders in the orders model for the current user
+		//specifying path to user _id (mongodb syntax), it'll will look for _id in the embedded user document
+		return db
+			.collection('orders')
+			.find({ 'user._id': new ObjectId(this._id) })
+			.toArray();
 	}
 
 	static findById(userId) {

@@ -1,6 +1,6 @@
 ### Note: AddToCart() in user.js is a bit confusing, keep revising that!
 
--> In mongoDb, we have databases, collections and documents.
+-> In mongoDb, we have databases, collections and documents. <br>
 <img src="README-files/noSQL_World.png" width="500" height="250" alt="Databases, collections and documents"> <br>
 
 ->It stores documents in JSON, or its own BSON precisely (Binary JSON, something to do with storage format and all) <br>
@@ -44,3 +44,14 @@ One to one relation, each user needs to have a cart, in which we store products.
 Cart is symbolic of that each user has one cart. cart has an items array, which contains product objects. <br>
 In the cart-item (items) document inside user document, we will only store the productId and the quantity. Not embedding product in the cart as if the product changes, we also need to change it in cart (so ofc some extra work needs to be done to get the product details in the cart).
 
+### Order and User
+Orders will also be stored on users. <br>
+We'll store orders in a new collection, as we can have many orders which we dont wanna all embed in the user doc (as an order history can be very big) (but still making a create order method on the user object). <br>
+NOTE: a user can have many orders (even past orders), they are all stored in the orders document
+
+### Order and Cart
+An order will look like: <br>
+<img src="README-files/order.png" width="500" height="250" alt="how an order looks"> <br>
+
+## NOTE: See last vid again later, and also see udemy for questions and solutions to problem posed in the vid
+`The issue is that when a user adds a product to their cart and then that product gets deleted from the product collection, there is nothing that also handles deleting the same product from their cart so we're left with a product in the cart that actually doesn't exist in the products collection. Basically, if you delete a product from the product collection, you must also make sure to delete reference to that product in every user's cart.`
