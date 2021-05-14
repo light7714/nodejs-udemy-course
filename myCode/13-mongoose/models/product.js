@@ -26,6 +26,12 @@ const productSchema = new Schema({
 		type: String,
 		required: true,
 	},
+	//*we are refering this field to a user doc in the user model, so adding ref with model name we wanna reference (it could be any ObjectId, we need to let mongoose know what we're referring to)
+	userId: {
+		type: Schema.Types.ObjectId,
+		ref: 'User',
+		required: true
+	}
 });
 
 //to make an object from model in other files, syntax is: const product = new Product();

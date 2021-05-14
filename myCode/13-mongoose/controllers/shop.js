@@ -1,9 +1,10 @@
 //controller for shop related logic
 
 const Product = require('../models/product');
+const Order = require('../models/order');
 
 exports.getProducts = (req, res, next) => {
-	//mongoose method (static, so directly on Product model, instead of making an object 1st (ofc)) find(), it returns products instead of cursor. we can still get cursor by find().cursor()
+	//mongoose method (static, so directly on Product model, instead of making an object 1st (ofc)) find(), it returns all products instead of cursor. we can still get cursor by find().cursor()
 	Product.find()
 		.then((products) => {
 			res.render('shop/product-list', {
@@ -56,9 +57,14 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCart = (req, res, next) => {
 	req.user
-		//returns products which are there in the user's cart (with quantity field also added in each product)
-		.getCart()
-		.then((products) => {
+		//*Population does not occur unless a callback is passed or execPopulate() is called if called on a document. req.user is a document so you must call execPopulate on it
+		.populate('cart.items.productId')
+		.execPopulate()
+		//we'll get the full user obj, with populated fields
+		.then((user) => {
+			//*actually its not products, it contains some product data (productId: {all_product_attributes}, quantity:~)
+			const products = user.cart.items;
+			//*in the view, product data will be avlbl on productId field, like product.productId.title, but quantity is on product.quantity only (see cart model in user model)
 			res.render('shop/cart', {
 				path: '/cart',
 				pageTitle: 'Your cart',
@@ -92,29 +98,53 @@ exports.postCart = (req, res, next) => {
 exports.postCartDeleteProduct = (req, res, next) => {
 	const prodId = req.body.productId;
 	req.user
-		.deleteItemFromCart(prodId)
+		.removeFromCart(prodId)
 		.then((result) => {
 			res.redirect('/cart');
 		})
 		.catch((err) => {
-			console.log('err in deleteItemsFromCart() in shop.js:', err);
+			console.log('err in removeFromCart() in shop.js:', err);
 		});
 };
 
 exports.postOrder = (req, res, next) => {
 	req.user
-		.addOrder()
+		.populate('cart.items.productId')
+		.execPopulate()
+		.then((user) => {
+			//*actually user.cart.items was not products, it contains some product data (productId: {all_product_attributes}, quantity:~), thats why added map()
+			const products = user.cart.items.map((i) => {
+				//*actually if I just write i.productId, which contains all product data, also contains meta data mongoose added, and its somehow only storing the id in product field (due to too much meta data maybe..), if we want it to store just the data, we need to extract data from _doc (we cant see this behaviour in the console, as even in console it takes data from _doc behind the scenes) see link in README
+				return {
+					quantity: i.quantity,
+					product: { ...i.productId._doc },
+				};
+			});
+
+			const order = new Order({
+				user: {
+					name: req.user.name,
+					userId: req.user,
+				},
+				products: products,
+			});
+
+			return order.save();
+		})
+		.then(() => {
+			req.user.clearCart();
+		})
 		.then((result) => {
 			res.redirect('/orders');
 		})
 		.catch((err) => {
-			console.log('err in addOrder() in shop.js:', err);
+			console.log('err in populate() in shop.js (postOrder):', err);
 		});
 };
 
 exports.getOrders = (req, res, next) => {
-	req.user
-		.getOrders()
+	Order
+		.find({ 'user.userId': req.user._id })
 		.then((orders) => {
 			res.render('shop/orders', {
 				path: '/orders',

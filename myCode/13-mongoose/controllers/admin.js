@@ -26,6 +26,9 @@ exports.postAddProduct = (req, res, next) => {
 		price: price,
 		description: description,
 		imageUrl: imageUrl,
+		// userId: req.user._id,
+		//*we can even just pass full user, as userId is defined as an ObjectId, it'll pick just the _id from user automatically
+		userId: req.user
 	});
 
 	product
@@ -83,7 +86,7 @@ exports.postEditProduct = (req, res, next) => {
 			product.price = updatedPrice;
 			product.description = updatedDescription;
 			product.imageUrl = updatedImageUrl;
-			//*When we call save() on an existing mongoose obj, it'll automatically update the existing one in db, not add a new document
+			//*When we call save() on an existing mongoose obj (which exists in db), it'll automatically update the existing one in db, not add a new document
 			return product.save();
 		})
 		.then((result) => {
@@ -98,6 +101,14 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.getProducts = (req, res, next) => {
 	Product.find()
+
+		//we dont need these commented features here, but just for knowledge
+		// //*if we need to get only some fields, we could attach select. We can even get all fields excluding some, like select(-name). _id will always be retrieved unless explicitly excluded
+		//* .select('title price -id')
+		// //*if we want to get all user related data, and not just the userId in products, instead of writing nested queries, we attach populate('path-to-populate'), in our case just the userId attrib (we can also pass nested paths if we had one, like userId.cart._id ...)
+		// //*2nd argument is getting only some fields, same as select()
+		//*ALSO, Population does not occur unless a callback is passed or execPopulate() is called if called on a document. The result of Product.find() is a query and not a document so you can call .populate() on it right away. 
+		//* .populate('userId', 'name email')
 		.then((products) => {
 			res.render('admin/products', {
 				prods: products,
