@@ -1,0 +1,5 @@
+<form action="/cart" method="POST">
+    <button class="btn" type="submit">Add To Cart</button>
+    <!-- *passing some imp data as part of post req (name, value pair) -->
+    <input type="hidden" name="productId" value="<%= product._id %>">
+</form>
