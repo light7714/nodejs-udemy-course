@@ -9,6 +9,8 @@ exports.getAddProduct = (req, res, next) => {
 		pageTitle: 'Add Product',
 		path: '/admin/add-product',
 		editing: false,
+		//see auth.js
+		isAuthenticated: req.isLoggedIn,
 	});
 };
 
@@ -28,7 +30,7 @@ exports.postAddProduct = (req, res, next) => {
 		imageUrl: imageUrl,
 		// userId: req.user._id,
 		//*we can even just pass full user, as userId is defined as an ObjectId, it'll pick just the _id from user automatically
-		userId: req.user
+		userId: req.user,
 	});
 
 	product
@@ -65,6 +67,7 @@ exports.getEditProduct = (req, res, next) => {
 				path: '/admin/edit-product',
 				editing: editMode,
 				product: product,
+				isAuthenticated: req.isLoggedIn,
 			});
 		})
 		.catch((err) => {
@@ -107,13 +110,14 @@ exports.getProducts = (req, res, next) => {
 		//* .select('title price -id')
 		// //*if we want to get all user related data, and not just the userId in products, instead of writing nested queries, we attach populate('path-to-populate'), in our case just the userId attrib (we can also pass nested paths if we had one, like userId.cart._id ...)
 		// //*2nd argument is getting only some fields, same as select()
-		//*ALSO, Population does not occur unless a callback is passed or execPopulate() is called if called on a document. The result of Product.find() is a query and not a document so you can call .populate() on it right away. 
+		//*ALSO, Population does not occur unless a callback is passed or execPopulate() is called if called on a document. The result of Product.find() is a query and not a document so you can call .populate() on it right away.
 		//* .populate('userId', 'name email')
 		.then((products) => {
 			res.render('admin/products', {
 				prods: products,
 				pageTitle: 'Admin Products',
 				path: '/admin/products',
+				isAuthenticated: req.isLoggedIn,
 			});
 		})
 		.catch((err) => {

@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
+const authRoutes = require('./routes/auth');
 const rootDir = require('./util/path');
 const errorController = require('./controllers/error');
 
@@ -42,6 +43,7 @@ app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
+app.use(authRoutes);
 app.use(errorController.get404);
 
 //these options set to remove all warnings, see depreciation docs, can also pass these in mongoose.connect()
