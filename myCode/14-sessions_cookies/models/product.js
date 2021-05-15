@@ -4,12 +4,11 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-//*MongoDb is schemaless, but here we're defining schemas. We're doing this as we often have a certain structure with the data we work with, and mongoose offers us advantage of just focussing on our data and not on queries, but for that it needs to know how the data looks like. But we can still deviate after setting schema and not setting certain attributes in an object later (if required flag is not false)
+//*MongoDb is schemaless, but here we're defining schemas. We're doing this as we often have a certain structure with the data we work with, and mongoose offers us advantage of just focussing on our data and not on queries, but for that it needs to know how the data looks like. But we can still deviate after setting schema and not set certain attributes in an object later (if required flag is not false)
 
 //* _id will still be added automatically, another attribute __v (version key) is also added
 //This is just a schema, not the product Model
 const productSchema = new Schema({
-	//also defining the type of attributes, String is default js obj
 	title: {
 		type: String,
 		required: true,

@@ -26,7 +26,10 @@ const userSchema = new Schema({
 					ref: 'Product',
 					required: true,
 				},
-				quantity: { type: Number, required: true },
+				quantity: {
+					type: Number,
+					required: true,
+				},
 			},
 		],
 	},
@@ -78,7 +81,6 @@ userSchema.methods.removeFromCart = function (productId) {
 	});
 
 	this.cart.items = updatedCartItems;
-	//promise returned by this will be handled in controller where removeFromCart() is called
 	return this.save();
 };
 

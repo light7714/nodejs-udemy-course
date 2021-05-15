@@ -4,7 +4,7 @@ const Product = require('../models/product');
 const Order = require('../models/order');
 
 exports.getProducts = (req, res, next) => {
-	//mongoose method (static, so directly on Product model, instead of making an object 1st (ofc)) find(), it returns all products instead of cursor. we can still get cursor by find().cursor()
+	//mongoose static method find(), it returns all products instead of cursor. we can still get cursor by find().cursor()
 	Product.find()
 		.then((products) => {
 			res.render('shop/product-list', {
@@ -67,7 +67,7 @@ exports.getCart = (req, res, next) => {
 		.then((user) => {
 			//*actually its not products, it contains some product data (productId: {all_product_attributes}, quantity:~)
 			const products = user.cart.items;
-			//*in the view, product data will be avlbl on productId field, like product.productId.title, but quantity is on product.quantity only (see cart model in user model)
+			//*in the view, product data will be avlbl on productId field, like product.productId.title, but qty is on product.quantity only (see cart model in user model)
 			res.render('shop/cart', {
 				path: '/cart',
 				pageTitle: 'Your cart',
@@ -81,14 +81,12 @@ exports.getCart = (req, res, next) => {
 };
 
 exports.postCart = (req, res, next) => {
-	//*productId was passed to request's body (in add to cart buttons)
 	const prodId = req.body.productId;
 	Product.findById(prodId)
 		.then((product) => {
 			//returning addToCart as it returns a promise (chain) here, so we can attach a then block below this
 			return req.user.addToCart(product);
 		})
-		//no use of another then block if I dont wanna console log result
 		.then((result) => {
 			// console.log(result);
 			res.redirect('/cart');
@@ -118,7 +116,7 @@ exports.postOrder = (req, res, next) => {
 		.then((user) => {
 			//*actually user.cart.items was not products, it contains some product data (productId: {all_product_attributes}, quantity:~), thats why added map()
 			const products = user.cart.items.map((i) => {
-				//*actually if I just write i.productId, which contains all product data, also contains meta data mongoose added, and its somehow only storing the id in product field (due to too much meta data maybe..), if we want it to store just the data, we need to extract data from _doc (we cant see this behaviour in the console, as even in console it takes data from _doc behind the scenes) see link in README
+				//**actually if I just write i.productId, which contains all product data, also contains meta data mongoose added, and its somehow only storing the id in product field (due to too much meta data maybe..), if we want it to store just the data, we need to extract data from _doc (we cant see this behaviour in the console, as even in console it takes data from _doc behind the scenes) see link in README
 				return {
 					quantity: i.quantity,
 					product: { ...i.productId._doc },

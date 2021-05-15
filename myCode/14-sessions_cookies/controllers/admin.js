@@ -1,5 +1,3 @@
-//controller for admin related logic
-
 const Product = require('../models/product');
 
 const errorController = require('./error');
@@ -9,7 +7,6 @@ exports.getAddProduct = (req, res, next) => {
 		pageTitle: 'Add Product',
 		path: '/admin/add-product',
 		editing: false,
-		//see auth.js
 		isAuthenticated: req.isLoggedIn,
 	});
 };
@@ -20,9 +17,9 @@ exports.postAddProduct = (req, res, next) => {
 	const price = req.body.price;
 	const description = req.body.description;
 
-	//*lhs is the attribute in model, rhs is above variable
 	//mongoose document
 	//* Mongoose queries are not promises. They have a .then() function for co and async/await as a convenience. If you need a fully-fledged promise, use the .exec() function.
+	//*lhs is the attribute in model, rhs is above variable
 	const product = new Product({
 		title: title,
 		price: price,
@@ -54,10 +51,10 @@ exports.getEditProduct = (req, res, next) => {
 	//getting productId from the url
 	const prodId = req.params.productId;
 
+	//mongoose static findById()
 	Product.findById(prodId)
 		.then((product) => {
-			//*if no id matches (the prod id is not in products.json), product receives undefined, and we need to return error page
-			//* in vid we're redirecting to index page
+			//*if no id matches, product receives undefined, and we need to return error page. In vid index page returned
 			if (!product) {
 				return errorController.get404(req, res, next);
 			}
@@ -126,7 +123,6 @@ exports.getProducts = (req, res, next) => {
 };
 
 exports.postDeleteProduct = (req, res, next) => {
-	//sending productId (hidden input) in post req body (in admin products page where the delete btn is present)
 	const prodId = req.body.productId;
 
 	//mongoose static method findByIdAndRemove()

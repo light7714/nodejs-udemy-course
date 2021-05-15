@@ -85,7 +85,7 @@ mongoose
 		console.log('err in mongoose.connect in app.js:', err);
 	});
 
-//sometimes process keeps on running even after ctrl+c (dunno why), thats why added this
+//sometimes process keeps on running even after ctrl+c (dunno why), thats why added this (still not solved..???)
 process.on('SIGINT', () => {
 	console.log('\nShutting down');
 	process.exit(1);
