@@ -7,7 +7,7 @@ exports.getAddProduct = (req, res, next) => {
 		pageTitle: 'Add Product',
 		path: '/admin/add-product',
 		editing: false,
-		isAuthenticated: req.isLoggedIn,
+		isAuthenticated: req.session.isLoggedIn,
 	});
 };
 
@@ -64,7 +64,7 @@ exports.getEditProduct = (req, res, next) => {
 				path: '/admin/edit-product',
 				editing: editMode,
 				product: product,
-				isAuthenticated: req.isLoggedIn,
+				isAuthenticated: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => {
@@ -114,11 +114,11 @@ exports.getProducts = (req, res, next) => {
 				prods: products,
 				pageTitle: 'Admin Products',
 				path: '/admin/products',
-				isAuthenticated: req.isLoggedIn,
+				isAuthenticated: req.session.isLoggedIn,
 			});
 		})
 		.catch((err) => {
-			console.log('err in findAll in admin js:', err);
+			console.log('err in find in admin js:', err);
 		});
 };
 
@@ -129,9 +129,13 @@ exports.postDeleteProduct = (req, res, next) => {
 	Product.findByIdAndRemove(prodId)
 		.then(() => {
 			console.log('Destroyed the Product');
+			return req.user.removeFromCart(prodId);
+		})
+		.then(() => {
+			console.log('Removed Product from cart');
 			res.redirect('/admin/products');
 		})
 		.catch((err) => {
-			console.log('err in deleteById in admin.js:', err);
+			console.log('err in findByIdAndRemove() in admin.js:', err);
 		});
 };

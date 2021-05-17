@@ -11,9 +11,8 @@
             </div>
             <h2><%= product.price %></h2>
             <p><%= product.description %></p>
-            <!-- its a post req we're sending. in post req, we can put all input data and so on into the request's body (like when using post request to add a product, all input form data is sent in the request's body. this aint possible with get req) -->
-            <!-- so we dont need to add anything to the url (as we did in get req; dynamic routes), we can put info in post body -->
-            <!-- tho we could add a dynamic segment for a post request too -->
-            <%- include('../includes/add-to-cart.ejs') %>
+            <% if (isAuthenticated) { %>
+                <%- include('../includes/add-to-cart.ejs', {product: product}) %>
+            <% } %>
         </main>
         <%- include('../includes/end.ejs') %>

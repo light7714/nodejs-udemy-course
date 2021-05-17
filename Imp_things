@@ -7,14 +7,24 @@
 - not doing express-handlebars templating engine
 - added a nodemon config to ignore products.json and cart.json
 
-Dependencies:
+Dependencies (at any time):
 express
-body-parser
+body-parser //no need later
+pug
 ejs
 mysql2
 sequelize
 mongodb
 mongoose
+express-session
+connect-mongodb-session
+
+Current dependencies:
+express
+ejs
+mongoose
+express-session
+connect-mongodb-session
 
 Dev-dependencies:
 nodemon

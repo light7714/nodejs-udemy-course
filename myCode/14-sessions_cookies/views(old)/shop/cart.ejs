@@ -5,9 +5,10 @@
     <body>
         <%- include('../includes/navigation.ejs') %>
         <main>
+            <!-- products here sent by getCart controller is an array of objs, with all product related attributes title, price, description, imageUrl, and also a quantity field (qty in cart)-->
             <% if (products.length > 0) { %>
                 <ul class="cart__item-list">
-                    <% products.forEach(p => { %>
+                    <% products.forEach((p) => { %>
                         <li class="cart__item">
                             <h1><%= p.productId.title %></h1>
                             <h2>Quantity: <%= p.quantity %></h2>
@@ -16,17 +17,16 @@
                                 <button class="btn danger" type="submit">Delete</button>
                             </form>
                         </li>
-                    <% }) %>
+                    <% }); %>
                 </ul>
                 <hr>
                 <div class="centered">
                     <form action="/create-order" method="POST">
-                        <button type="submit" class="btn">Order Now!</button>
+                        <button class="btn" type="submit">Order Now</button>
                     </form>
                 </div>
-                
             <% } else { %>
-                <h1>No Products in Cart!</h1>
+                <h1>No Products in cart!</h1>
             <% } %>
         </main>
         <%- include('../includes/end.ejs') %>

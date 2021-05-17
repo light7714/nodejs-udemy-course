@@ -1,3 +1,5 @@
+<!-- used for both edit-product and add-product routes -->
+
 <%- include('../includes/head.ejs') %>
     <link rel="stylesheet" href="/css/forms.css">
     <link rel="stylesheet" href="/css/product.css">
@@ -24,11 +26,14 @@
                 <label for="description">Description</label>
                 <textarea name="description" id="description" rows="5"><% if (editing) { %><%= product.description %><% } %></textarea>
             </div>
+
+            <!-- when editing product, we're sending product id too thru post req in the req body -->
             <% if (editing) { %>
                 <input type="hidden" value="<%= product._id %>" name="productId">
             <% } %>
 
-            <button class="btn" type="submit"><% if (editing) { %>Update Product<% } else { %>Add Product<% } %></button>
+            <!--*editing is actually string "true" -->
+            <button class="btn" type="submit"><% if (editing) { %>Update Product <% } else { %>Add Product <% } %></button>
         </form>
     </main>
 <%- include('../includes/end.ejs') %>

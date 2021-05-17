@@ -3,6 +3,9 @@ const process = require('process');
 
 const express = require('express');
 const mongoose = require('mongoose');
+const session = require('express-session');
+//*require() gives a fn here, to which we pass our session, MongoDBStore is a constructor fn
+const MongoDBStore = require('connect-mongodb-session')(session);
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -13,33 +16,60 @@ const errorController = require('./controllers/error');
 const User = require('./models/user');
 
 const app = express();
+const PASSWORD = 'shubham1234';
+const MONGODB_URI = `mongodb+srv://shubham_temp:${PASSWORD}@cluster0.b6e3a.mongodb.net/shop?retryWrites=true&w=majority`;
+
+//it needs to know where to store our data, so passing uri
+const store = new MongoDBStore({
+	uri: MONGODB_URI,
+	collection: 'sessions',
+	//can also set expire key (it sets one by default)
+});
 
 const PORT = 8000;
+
+//*solution to queries and outputs being logged twice in console, as browser again sends a request when it doesnt find favicon
+app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(rootDir, 'public')));
-const PASSWORD = 'shubham1234';
+//session imported was a fn
+//*secret is used for signing the hash which stores id of session in the cookie, can pass anything (should be a long string).
+//resave: false means session wont be saved on every req received, but only if something changed in the session (improves performance)
+//"saveUninitialized is for saving sessions that are new, but have not been modified. If you set it to false then empty sessions won't be stored in the database."       ???
+//**this doesnt create a new session in the db on each request, it did only for the 1st request, after a session cookie has been set (in postLogin, isLoggedIn=true), logging that on a new request always shows true (till the session doesnt expire) as this session is identified for a browser (so a user) because we have that cookie on the browser.
+app.use(
+	session({
+		secret: 'my secret',
+		resave: false,
+		saveUninitialized: false,
+		//now the session cookie will also be stored in mongodb
+		store: store,
+		//can also configure the session cookie here
+		// cookie{expires: }	cookie{maxAge: }
+	})
+);
 
 app.use((req, res, next) => {
-	//this id inside is the one I got from mongoDb compass
+	//* req.session.user added after login (auth.js), it is not a mongoose object, just plain object
+	if (!req.session.user) {
+		return next();
+	}
 	//mongoose static method findById
-	User.findById('609d9986e4eeef7603fb5189')
+	User.findById(req.session.user._id)
 		.then((user) => {
 			//*created a new user field in the request, now whenever we call req.user anywhere in controllers (registered below), we'll get the user
-			//user is mongoose obj (doc) with all methods
+			//*user here is mongoose obj (doc) with all methods, found using req.session.user, which was not a full mongoose obj
 			req.user = user;
 			next();
 		})
 		.catch((err) => {
-			console.log('err in app.use in app.js:', err);
+			console.log('err in findById() in app.js:', err);
 		});
 });
-
-//solution to queries and outputs being logged twice in console, as browser again sends a request when it doesnt find favicon
-app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
@@ -54,9 +84,7 @@ mongoose.set('useUnifiedTopology', true);
 
 //connecting to mongodb atlas here only, no need of a database.js file
 mongoose
-	.connect(
-		`mongodb+srv://shubham_temp:${PASSWORD}@cluster0.b6e3a.mongodb.net/shop?retryWrites=true&w=majority`
-	)
+	.connect(MONGODB_URI)
 	//user doc will be saved in the starting only rn, _id and __v attribs added automatically
 	.then((result) => {
 		//*mongoose static findOne() gives the 1st doc by default

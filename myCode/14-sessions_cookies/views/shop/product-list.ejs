@@ -28,9 +28,9 @@
                                 </div>
                                 <div class="card__actions">
                                     <a href="/products/<%= product._id %>" class="btn">Details</a>
-                                    <!-- *as product is a local variable in a loop, the expanded code below doesnt get the local variable -->
-                                    <!-- *to add the local var product in the below included code, we pass the variable to it -->
-                                    <%- include('../includes/add-to-cart.ejs', {product: product}) %>
+                                    <% if (isAuthenticated) { %>
+                                        <%- include('../includes/add-to-cart.ejs', {product: product}) %>
+                                    <% } %>
                                 </div>
                             </article>
                             <% } %>

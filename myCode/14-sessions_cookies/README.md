@@ -34,3 +34,25 @@ When we're saving a user in req.user, we're doing it in app.js at the topmost le
 //*can set Secure (without any value), means the cookie will be set only when page is served via https (so we wont see cookie rn as we dont have https)
 //*can set HttpOnly key (without value), means we cant access the cookie value through client side scripts, an imp security mech as it protects from cross site scripting attacks
 ```
+
+### Session
+-> We'll store if a user is logged in or not in a session on the server side (1st in memory, then in db) as we want that info across all requests of the same user. <br>
+
+->A client needs to tell the server to which session it belongs. We'll use a cookie, which will stores the id of the session. The value will hashed id, where only the server can confirm that it hasnt been tampered with. <br>
+
+-> When using session, we're not setting cookie ourselves. After registering session middleware in app.js and writing `req.session.isLoggedIn = true;` in postLogin controller, we see a new cookie added in browser, named connect.sid (session id). Its value is a long string (encrypted value). By default its session cookie (session here means it'll expire after clsing browser)
+
+
+-> Registering the session middleware in app.js doesnt create a new session (assuming no server reload) on each request, it did only for the 1st request, after a session cookie has been set (in postLogin, isLoggedIn=true), logging that on a new request always shows true (till that browser isnt closed) as this session is identified for a browser (so a user) because we have that cookie on the browser. Thats why if we open a new browser, we'll see undefined logged in `console.log(req.session.isLoggedIn);`.
+
+-> session is different from session cookie (session cookie is a cookie which goes away after browser closed, session is a construct in memory or db) (tho here the browser still stores the cookie even after it is closed, even tho on browser its expiry date shows session.. it seems it depends on browser)
+
+-> When using mongodb to store sessions, we can see that for each new browser, a new session doc is made.
+
+-> The session in server checks the cookie (which stores the session id) for each request, thats how the server knows which user sent a request.
+
+-> When isAuthenticated is true, the user related links (admin links, add to cart, cart, orders) will be shown. Login will be shown when user is not authenticates, logout will be shown if user is authenticated.
+
+-> RN proper authentication is not there, so if a user manually enters a route which they are not supposed to go to (like go to add-product page), then still the page will be shown (req.session.isLoggedIn is undefined, treated as false in bool check in views) (as route is still avlbl).
+
+-> **IMP** req.session.user is not a mongoose object, just plain object. https://stackoverflow.com/questions/18512461/express-cookiesession-and-mongoose-how-can-i-make-request-session-user-be-a-mon/18662693#18662693
