@@ -7,6 +7,7 @@ const session = require('express-session');
 //*require() gives a fn here, to which we pass our session, MongoDBStore is a constructor fn
 const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
+const flash = require('connect-flash');
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -57,8 +58,13 @@ app.use(
 	})
 );
 
-//*this middleware comes after initiliasing the session, as it uses the session
+//* when not logged in, it'll create a session on which the msg will be flashed, and then pulled out, but still that session will exist with empty flash obj. After logging in, in that same session isLoggedIn and user obj will be stored. SO new sessions are not created, on that same session dataa is stored (on that session only the csrf token is also there)
+
+
+//*next 2 middlewares come after initiliasing the session, as they use the session
 app.use(csrfProtection);
+//now can call flash middleware anywhere on req obj
+app.use(flash());
 
 app.use((req, res, next) => {
 	//* req.session.user added after login (auth.js), it is not a mongoose object, just plain object
@@ -79,7 +85,7 @@ app.use((req, res, next) => {
 });
 
 //*location is imp
-//*We need to pass isAuthenticated and csrfToken variables in every view
+//*We need to pass isAuthenticated and csrfToken variables in every rendered view
 app.use((req, res, next) => {
 	//*locals field on response obj allows us to set local variables that are always passed into the views (local as they'll only exist in views that are rendered)
 	res.locals.isAuthenticated = req.session.isLoggedIn;

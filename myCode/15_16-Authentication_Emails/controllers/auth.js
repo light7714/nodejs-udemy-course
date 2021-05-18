@@ -2,22 +2,37 @@ const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 
 exports.getLogin = (req, res, next) => {
+	// console.log(req.flash('error'));
+	//pulling the msg out of session, only arg passed is key, if no error is flashed into the session, it will be an empty array (smh..?), else will be array of messages... (see more)
+	let message = req.flash('error');
+	if (message.length > 0) {
+		message = message[0];
+	} else {
+		message = null;
+	}
+
 	//*We see true on sending different requests (going to diff pages) even though each req is technically separate from each other.
 	//*Thats why if we open a new browser, we'll see undefined logged here.
 	// console.log('Logged In:', req.session.isLoggedIn);
 	res.render('auth/login', {
 		path: '/login',
 		pageTitle: 'Login',
-		//as this page will only be shown when the user is not authenticated, thats why always passing false here
-		isAuthenticated: false,
+		errorMessage: message,
 	});
 };
 
 exports.getSignup = (req, res, next) => {
+	let message = req.flash('error');
+	if (message.length > 0) {
+		message = message[0];
+	} else {
+		message = null;
+	}
+
 	res.render('auth/signup', {
 		path: '/signup',
 		pageTitle: 'Signup',
-		isAuthenticated: false,
+		errorMessage: message,
 	});
 };
 
@@ -30,6 +45,9 @@ exports.postLogin = (req, res, next) => {
 		.then((user) => {
 			//if user doesnt exist, going back to login page for now (reloading)
 			if (!user) {
+				//flashing an err msg to a the session (so it can persist even after redirecting, and once we pull the msg (in getLogin) from session, it will be dltd), method added by connect-flash package
+				//1st arg is key under which msg is stored, 2nd arg is msg
+				req.flash('error', 'Invalid email or password!');
 				return res.redirect('/login');
 			}
 
@@ -53,11 +71,13 @@ exports.postLogin = (req, res, next) => {
 									err
 								);
 							}
+
 							//*whenever any response is sent, the session cookie will be sent along with it, so even if we do res.send(); the cookie will be sent
 							res.redirect('/');
 						});
 					}
 
+					req.flash('error', 'Invalid email or password!');
 					res.redirect('/login');
 				})
 				.catch((err) => {
@@ -81,7 +101,10 @@ exports.postSignup = (req, res, next) => {
 		.then((userDoc) => {
 			//if even one doc with that email exists, we dont wanna create new user
 			if (userDoc) {
-				//we'll inform user later
+				req.flash(
+					'error',
+					'Email exists already, please use a different one!'
+				);
 				return res.redirect('/signup');
 			}
 

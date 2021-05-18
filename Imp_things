@@ -6,7 +6,7 @@
 - installed pug and ejs (npm install --save pug ejs) in 6th module, 4th vid
 - not doing express-handlebars templating engine
 - added a nodemon config to ignore products.json and cart.json
-- bcryptjs helps with encryption, csurf helps with preventing csrf attacks
+- bcryptjs helps with encryption, csurf helps with preventing csrf attacks, connect-flash is used to flash a msg to session and then remove it when the msg is pulled out
 
 Dependencies (at any time):
 express
@@ -21,6 +21,7 @@ express-session
 connect-mongodb-session
 bcryptjs
 csurf
+connect-flash
 
 Current dependencies:
 express
@@ -30,6 +31,7 @@ express-session
 connect-mongodb-session
 bcryptjs
 csurf
+connect-flash
 
 Dev-dependencies:
 nodemon
