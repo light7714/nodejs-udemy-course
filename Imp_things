@@ -6,6 +6,7 @@
 - installed pug and ejs (npm install --save pug ejs) in 6th module, 4th vid
 - not doing express-handlebars templating engine
 - added a nodemon config to ignore products.json and cart.json
+- bcryptjs helps with encryption, csurf helps with preventing csrf attacks
 
 Dependencies (at any time):
 express
@@ -18,6 +19,8 @@ mongodb
 mongoose
 express-session
 connect-mongodb-session
+bcryptjs
+csurf
 
 Current dependencies:
 express
@@ -25,6 +28,8 @@ ejs
 mongoose
 express-session
 connect-mongodb-session
+bcryptjs
+csurf
 
 Dev-dependencies:
 nodemon

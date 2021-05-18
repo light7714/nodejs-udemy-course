@@ -1,6 +1,7 @@
 const express = require('express');
 
 const authController = require('../controllers/auth');
+const isAuth = require('../middleware/is-auth');
 
 const router = express.Router();
 
@@ -13,6 +14,6 @@ router.post('/login', authController.postLogin);
 router.post('/signup', authController.postSignup);
 
 //rn this will remove the session (logout button on nav bar)
-router.post('/logout', authController.postLogout);
+router.post('/logout', isAuth, authController.postLogout);
 
 module.exports = router;

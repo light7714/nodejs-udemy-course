@@ -48,7 +48,10 @@ exports.getIndex = (req, res, next) => {
 				prods: products,
 				pageTitle: 'Shop',
 				path: '/',
-				isAuthenticated: req.session.isLoggedIn,
+				// moved to a res.locals in a middleware in app.js
+				// isAuthenticated: req.session.isLoggedIn,
+				// //method provided by csrf middleware (in app.js)
+				// csrfToken: req.csrfToken(),
 			});
 		})
 		.catch((err) => {
@@ -123,7 +126,7 @@ exports.postOrder = (req, res, next) => {
 
 			const order = new Order({
 				user: {
-					name: req.user.name,
+					email: req.user.email,
 					userId: req.user,
 				},
 				products: products,
