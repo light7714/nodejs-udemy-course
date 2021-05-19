@@ -1,5 +1,23 @@
-const User = require('../models/user');
+const process = require('process');
+
+require('dotenv').config();
+
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
+const sendgridTransport = require('nodemailer-sendgrid-transport');
+
+const User = require('../models/user');
+
+//need to intialise transporter (telling nodemailer how emails to be sent)
+//returns a configuration nodemailer can use to use sendgrid (also do single sender verification)
+const transporter = nodemailer.createTransport(
+	sendgridTransport({
+		auth: {
+			//value to be obtained from sendgrid account (settings->api key->create new. added node-shop as name (one time))
+			api_key: process.env.API_KEY,
+		},
+	})
+);
 
 exports.getLogin = (req, res, next) => {
 	// console.log(req.flash('error'));
@@ -121,10 +139,21 @@ exports.postSignup = (req, res, next) => {
 					return user.save();
 				})
 				.then((result) => {
+					//redirecting immediately, not waiting for email to be sent (below), as even if email goes later its no problem (and sending email is slow, so dont block)
 					res.redirect('/login');
+
+					//sending an email after sign up, returns promise
+					return transporter.sendMail({
+						to: email,
+						//verified account to send emails
+						from: 'shubhamlightning99@gmail.com',
+						subject: 'Sign Up succesfull!',
+						html: '<h1>You successfully signed up chomu! 😎<h1>',
+					});
+
 				})
 				.catch((err) => {
-					console.log('err in hash() in findOne() in auth.js:', err);
+					console.log('err in hash() chain in findOne() in auth.js:', err);
 				});
 		})
 		.catch((err) => {

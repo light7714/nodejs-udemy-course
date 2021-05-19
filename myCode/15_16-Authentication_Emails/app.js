@@ -1,6 +1,8 @@
 const path = require('path');
 const process = require('process');
 
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
@@ -19,8 +21,9 @@ const User = require('./models/user');
 
 const app = express();
 const PORT = 8000;
-const PASSWORD = 'shubham1234';
-const MONGODB_URI = `mongodb+srv://shubham_temp:${PASSWORD}@cluster0.b6e3a.mongodb.net/shop?retryWrites=true&w=majority`;
+const USER = process.env.DB_user;
+const PASSWORD = process.env.DB_password;
+const MONGODB_URI = `mongodb+srv://${USER}:${PASSWORD}@cluster0.b6e3a.mongodb.net/shop?retryWrites=true&w=majority`;
 
 //it needs to know where to store our data, so passing uri
 const store = new MongoDBStore({

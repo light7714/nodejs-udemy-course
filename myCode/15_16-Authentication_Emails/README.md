@@ -41,3 +41,10 @@ We need to provide some feedback too, like when user entered wrong password, we 
 So we need to store some error data before we redirect, and then use in the new request to render view with error (for that user). We can use a session (as we need to store data across requests). But we dont wanna store the msg to the session permanently, we want to store it temporarily (called flash it to the session) and once we pulled it out of the session (and did something with it), we need to remove it from session, so that for subsequent reqs, its not part of session anymore. Using another package connect-flash for that.
 
 **NOTE**: when not logged in, it'll create a session on which the msg will be flashed, and then pulled out, but still that session will exist with empty flash obj. After logging in, in that same session isLoggedIn and user obj will be stored. SO new sessions are not created, on that same session dataa is stored (on that session only the csrf token is also there).
+
+## Emails
+We dont usually make our own email server (as node has no support for doing that, and its very complex), we typically use 3rd party email server. We'll use SendGrid here.
+
+installed nodemailer (to send emails from inside nodejs), nodemailer-sendgrid-transport
+
+-> To generate api keys, I went to sendgrid website, settings => api key => create new. Added node-shop as name. we get api key only once (also do single sender verification)
