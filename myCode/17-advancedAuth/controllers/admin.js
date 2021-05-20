@@ -70,6 +70,7 @@ exports.getEditProduct = (req, res, next) => {
 		});
 };
 
+//now editing only those prods created by logged in user
 exports.postEditProduct = (req, res, next) => {
 	const prodId = req.body.productId;
 	const updatedTitle = req.body.title;
@@ -79,26 +80,32 @@ exports.postEditProduct = (req, res, next) => {
 
 	Product.findById(prodId)
 		.then((product) => {
+			if (product.userId.toString() !== req.user._id.toString()) {
+				console.log('Editing the product not allowed');
+				return res.redirect('/');
+			}
 			//*product is not a js obj with just data, but its mongoose obj (doc) with all mongoose methods
 			product.title = updatedTitle;
 			product.price = updatedPrice;
 			product.description = updatedDescription;
 			product.imageUrl = updatedImageUrl;
 			//*When we call save() on an existing mongoose obj (which exists in db), it'll automatically update the existing one in db, not add a new document
-			return product.save();
+			return product.save().then((result) => {
+				console.log('Updated the Product!');
+				//* if we do have an err, we wont get redirected.. we'll learn how to deal with this later
+				res.redirect('/admin/products');
+			});
 		})
-		.then((result) => {
-			console.log('Updated the Product!');
-			//* if we do have an err, we wont get redirected.. we'll learn how to deal with this later
-			res.redirect('/admin/products');
-		})
+
 		.catch((err) => {
 			console.log('err in save in admin.js', err);
 		});
 };
 
+//now, will only show products created by the logged in user here (only showing isnt sufficient tho, added protection in edit and dlt prod too so one cant do it using dev tools or url)
 exports.getProducts = (req, res, next) => {
-	Product.find()
+	//only getting products made my currently logged in user
+	Product.find({ userId: req.user._id })
 
 		//we dont need these commented features here, but just for knowledge
 		// //*if we need to get only some fields, we could attach select. We can even get all fields excluding some, like select(-name). _id will always be retrieved unless explicitly excluded
@@ -119,20 +126,25 @@ exports.getProducts = (req, res, next) => {
 		});
 };
 
+//now dlting products created by logged in user only
 exports.postDeleteProduct = (req, res, next) => {
 	const prodId = req.body.productId;
 
-	//mongoose static method findByIdAndRemove()
-	Product.findByIdAndRemove(prodId)
-		.then(() => {
-			console.log('Destroyed the Product');
-			return req.user.removeFromCart(prodId);
-		})
-		.then(() => {
-			console.log('Removed Product from cart');
+	//mongoose static method deleteOne
+	Product.deleteOne({ _id: prodId, userId: req.user._id })
+		.then((result) => {
+			if (result.deletedCount > 0) {
+				console.log('Destroyed the Product');
+				return req.user.removeFromCart(prodId).then(() => {
+					console.log('Removed Product from cart');
+					res.redirect('/admin/products');
+				});
+			}
+
+			console.log('Deleting the product now allowed');
 			res.redirect('/admin/products');
 		})
 		.catch((err) => {
-			console.log('err in findByIdAndRemove() in admin.js:', err);
+			console.log('err in deleteOne() in admin.js:', err);
 		});
 };
