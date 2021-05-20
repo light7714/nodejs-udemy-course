@@ -13,7 +13,7 @@ router.post('/login', authController.postLogin);
 
 router.post('/signup', authController.postSignup);
 
-//rn this will remove the session (logout button on nav bar)
+// this will remove the session (logout button on nav bar)
 router.post('/logout', isAuth, authController.postLogout);
 
 module.exports = router;

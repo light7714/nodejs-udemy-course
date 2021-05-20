@@ -8,8 +8,8 @@ const sendgridTransport = require('nodemailer-sendgrid-transport');
 
 const User = require('../models/user');
 
-//need to intialise transporter (telling nodemailer how emails to be sent)
-//returns a configuration nodemailer can use to use sendgrid (also do single sender verification)
+//*need to intialise transporter (telling nodemailer how emails to be sent)
+//returns a configuration nodemailer can use to use sendgrid
 const transporter = nodemailer.createTransport(
 	sendgridTransport({
 		auth: {
@@ -21,7 +21,7 @@ const transporter = nodemailer.createTransport(
 
 exports.getLogin = (req, res, next) => {
 	// console.log(req.flash('error'));
-	//pulling the msg out of session, only arg passed is key, if no error is flashed into the session, it will be an empty array (smh..?), else will be array of messages... (see more)
+	//*pulling the msg out of session, only arg passed is key, if no error is flashed into the session, it will be an empty array (smh..?), else will be array of messages... (see more)
 	let message = req.flash('error');
 	if (message.length > 0) {
 		message = message[0];
@@ -54,23 +54,22 @@ exports.getSignup = (req, res, next) => {
 	});
 };
 
-//here,a session will be created with an id, a cookie having the specific session id (hashed) will be created
+//*here,a session will be created with an id, a cookie having the specific session id (hashed) will be created
 exports.postLogin = (req, res, next) => {
 	const email = req.body.email;
 	const password = req.body.password;
 	//lhs is email field in doc, rhs is const email
 	User.findOne({ email: email })
 		.then((user) => {
-			//if user doesnt exist, going back to login page for now (reloading)
 			if (!user) {
-				//flashing an err msg to a the session (so it can persist even after redirecting, and once we pull the msg (in getLogin) from session, it will be dltd), method added by connect-flash package
+				//*flashing an err msg to the session (so it can persist even after redirecting, and once we pull the msg (in getLogin) from session, it will be dltd), method added by connect-flash package
 				//1st arg is key under which msg is stored, 2nd arg is msg
 				req.flash('error', 'Invalid email or password!');
 				return res.redirect('/login');
 			}
 
 			//if user exists, validating password
-			//1st arg is password to check, 2nd is hashed value to check against
+			//*1st arg is password to check, 2nd is hashed value to check against
 			bcrypt
 				.compare(password, user.password)
 				.then((doMatch) => {
@@ -89,8 +88,7 @@ exports.postLogin = (req, res, next) => {
 									err
 								);
 							}
-
-							//*whenever any response is sent, the session cookie will be sent along with it, so even if we do res.send(); the cookie will be sent
+							//*whenever any response is sent (or even req received), the session cookie will be sent along with it, so even if we do res.send(); the cookie will be sent
 							res.redirect('/');
 						});
 					}
@@ -127,7 +125,7 @@ exports.postSignup = (req, res, next) => {
 			}
 
 			//*hashing the password before storage, 1st arg is what to hash, 2nd is salt (how many rounds of hashing to be applied, higher -> more secure -> longer it'll take)
-			//*we wont be able to decrypt this (we'll beable to validate it by using compare fn, as bcrypt has the key)
+			//*we wont be able to decrypt this (we'll be able to validate it by using compare fn, as bcrypt has the key)
 			return bcrypt
 				.hash(password, 12)
 				.then((hashedPassword) => {
@@ -165,6 +163,7 @@ exports.postSignup = (req, res, next) => {
 exports.postLogout = (req, res, next) => {
 	//destroy method by express-session package, the fn inside will be called when the session is destroyed
 	//*after destroying, the session cookie still exists in browser, but its no prob as the session is deleted, the cookie with new session id will be set after logging in again
+	//*actually after redirecting, a new session will be created again for csrf and flash (SO I SHOULD ACTUALLY DELETE isLoggedIn and user from session OR SET IT TO NULL)
 	req.session.destroy((err) => {
 		if (err) {
 			console.log('err in destroy() in postLogout:', err);

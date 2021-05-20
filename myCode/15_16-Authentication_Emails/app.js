@@ -51,7 +51,7 @@ app.use(express.static(path.join(rootDir, 'public')));
 //*matches session with cookie if present
 app.use(
 	session({
-		secret: 'my secret',
+		secret: process.env.session_secret,
 		resave: false,
 		saveUninitialized: false,
 		//now the session cookie will also be stored in mongodb
@@ -61,12 +61,11 @@ app.use(
 	})
 );
 
-//* when not logged in, it'll create a session on which the msg will be flashed, and then pulled out, but still that session will exist with empty flash obj. After logging in, in that same session isLoggedIn and user obj will be stored. SO new sessions are not created, on that same session dataa is stored (on that session only the csrf token is also there)
+//* when not logged in, it'll create a session on which the msg (err msg rn) will be flashed, and then pulled out, but still that session will exist with empty flash obj. After logging in, in that same session isLoggedIn and user obj will be stored. SO new sessions are not created, on that same session data is stored (on that session only the csrf token is also there)
 
-
-//*next 2 middlewares come after initiliasing the session, as they use the session
+//*next 2 middlewares come after initiliasing the session, as they use the session, will check incoming post (or any state changing) req for correct csrf token
 app.use(csrfProtection);
-//now can call flash middleware anywhere on req obj
+//now can call flash middleware anywhere on req obj (for flashing temp msgs on session)
 app.use(flash());
 
 app.use((req, res, next) => {
@@ -108,7 +107,6 @@ mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
 mongoose.set('useUnifiedTopology', true);
 
-//connecting to mongodb atlas here only, no need of a database.js file
 mongoose
 	.connect(MONGODB_URI)
 	.then((result) => {
