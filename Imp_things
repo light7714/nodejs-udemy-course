@@ -8,7 +8,7 @@
 - added a nodemon config to ignore products.json and cart.json
 - bcryptjs helps with encryption, csurf helps with preventing csrf attacks, connect-flash is used to flash a msg to session and then remove it when the msg is pulled out
 
-npm install --save express ejs mongoose express-session connect-mongodb-session bcryptjs csurf connect-flash dotenv nodemailer nodemailer-sendgrid-transport
+npm install --save express ejs mongoose express-session connect-mongodb-session bcryptjs csurf connect-flash dotenv nodemailer nodemailer-sendgrid-transport express-validator
 Dependencies (at any time):
 express
 body-parser //no need later
@@ -26,6 +26,7 @@ connect-flash
 dotenv
 nodemailer
 nodemailer-sendgrid-transport
+express-validator
 
 Current dependencies:
 express
@@ -39,6 +40,7 @@ connect-flash
 dotenv
 nodemailer
 nodemailer-sendgrid-transport
+express-validator
 
 Dev-dependencies:
 nodemon

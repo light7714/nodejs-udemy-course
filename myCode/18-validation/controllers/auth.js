@@ -7,6 +7,8 @@ require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
+//*validationResult is a fn that allows us to gather all error which prior validation middleware (like check('email').isEmail() on signup route in auth routes) might have stored.
+const { validationResult } = require('express-validator');
 
 const User = require('../models/user');
 
@@ -108,58 +110,65 @@ exports.postLogin = (req, res, next) => {
 };
 
 exports.postSignup = (req, res, next) => {
-	//validation later in course
 	const email = req.body.email;
 	const password = req.body.password;
-	const confirmPassword = req.body.confirmPassword;
+	// const confirmPassword = req.body.confirmPassword;	this already checked in route
+	//*this will extract all errs added by check('email').isEmail() in signup route in auth routes
+	const errors = validationResult(req);
 
-	//to check if email doesnt exist in db, 1) we can create an index on email and give it property unique (if u know how to do it), 2) find a user with that email
-	//lhs is email field in doc, rhs is const email
-	User.findOne({ email: email })
-		.then((userDoc) => {
-			//if even one doc with that email exists, we dont wanna create new user
-			if (userDoc) {
-				req.flash(
-					'error',
-					'Email exists already, please use a different one!'
-				);
-				return res.redirect('/signup');
-			}
+	//isEmpty returns bool value
+	if (!errors.isEmpty()) {
+		// console.log(errors.array());
+		//*422 status code -> validation failed
+		//this will render the same page again, just with a different status code (so the page on which this post req was sent)
+		return res.status(422).render('auth/signup', {
+			path: '/signup',
+			pageTitle: 'Signup',
+			//returning array of errors (objects)
+			//*for now only taking the 1st one (but we should ouptut all errors) (working as rn in view, we added novalidate in form, or it would validate in browser itself). its msg field has been modified in auth routes in check('email').isEmail().withMessage('Please Enter a valid email')
+			errorMessage: errors.array()[0].msg,
+		});
+	}
 
-			//*hashing the password before storage, 1st arg is what to hash, 2nd is salt (how many rounds of hashing to be applied, higher -> more secure -> longer it'll take)
-			//*we wont be able to decrypt this (we'll be able to validate it by using compare fn, as bcrypt has the key)
-			return bcrypt
-				.hash(password, 12)
-				.then((hashedPassword) => {
-					const user = new User({
-						email: email,
-						password: hashedPassword,
-						cart: { items: [] },
-					});
-					return user.save();
-				})
-				.then((result) => {
-					//redirecting immediately, not waiting for email to be sent (below), as even if email goes later its no problem (and sending email is slow, so dont block)
-					res.redirect('/login');
+	//*now doing this in validation step in the route
+	// User.findOne({ email: email })
+	// 	.then((userDoc) => {
+	// 		//if even one doc with that email exists, we dont wanna create new user
+	// 		if (userDoc) {
+	// 			req.flash(
+	// 				'error',
+	// 				'Email exists already, please use a different one!'
+	// 			);
+	// 			return res.redirect('/signup');
+	// 		}
 
-					//sending an email after sign up, returns promise
-					return transporter.sendMail({
-						to: email,
-						//verified account to send emails
-						from: 'shubhamlightning99@gmail.com',
-						subject: 'Sign Up succesfull!',
-						html: '<h1>You successfully signed up chomu! 😎<h1>',
-					});
-				})
-				.catch((err) => {
-					console.log(
-						'err in hash() chain in findOne() in auth.js:',
-						err
-					);
-				});
+	//*hashing the password before storage, 1st arg is what to hash, 2nd is salt (how many rounds of hashing to be applied, higher -> more secure -> longer it'll take)
+	//*we wont be able to decrypt this (we'll be able to validate it by using compare fn, as bcrypt has the key)
+	bcrypt
+		.hash(password, 12)
+		.then((hashedPassword) => {
+			const user = new User({
+				email: email,
+				password: hashedPassword,
+				cart: { items: [] },
+			});
+			return user.save();
+		})
+		.then((result) => {
+			//redirecting immediately, not waiting for email to be sent (below), as even if email goes later its no problem (and sending email is slow, so dont block)
+			res.redirect('/login');
+
+			//sending an email after sign up, returns promise
+			return transporter.sendMail({
+				to: email,
+				//verified account to send emails
+				from: 'shubhamlightning99@gmail.com',
+				subject: 'Sign Up succesfull!',
+				html: '<h1>You successfully signed up chomu! 😎<h1>',
+			});
 		})
 		.catch((err) => {
-			console.log('err in findOne() in auth.js:', err);
+			console.log('err in hash() chain in findOne() in auth.js:', err);
 		});
 };
 
