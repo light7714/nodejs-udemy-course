@@ -6,3 +6,10 @@ Built in database validation is also there in most dbs (like mongdodb) but its a
 -> Usually we validate on non-get requests.
 
 -> For more builtin validators, see docs (express-validator was a wrapper to validator.js, so see its docs)
+
+## Sanitisation
+Not focussing on XSS sanitisation rn
+
+-> When we are on a page and validation errors occur there, then we pass those to the view rendered again, but we still need flash here (it was used in postReset after checking if email exists or not in db). In general, flash to be used when msgs need to persist with redirect.
+
+### Note: not added validation to reset and new-password page in vids, and in my code too rn.

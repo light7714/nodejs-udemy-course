@@ -40,6 +40,11 @@ exports.getLogin = (req, res, next) => {
 		path: '/login',
 		pageTitle: 'Login',
 		errorMessage: message,
+		oldInput: {
+			email: '',
+			password: '',
+		},
+		validationErrors: [],
 	});
 };
 
@@ -55,6 +60,12 @@ exports.getSignup = (req, res, next) => {
 		path: '/signup',
 		pageTitle: 'Signup',
 		errorMessage: message,
+		oldInput: {
+			email: '',
+			password: '',
+			confirmPassword: '',
+		},
+		validationErrors: [],
 	});
 };
 
@@ -62,14 +73,48 @@ exports.getSignup = (req, res, next) => {
 exports.postLogin = (req, res, next) => {
 	const email = req.body.email;
 	const password = req.body.password;
+	const errors = validationResult(req);
+
+	if (!errors.isEmpty()) {
+		return res.status('422').render('auth/login', {
+			path: '/login',
+			pageTitle: 'Login',
+			errorMessage: errors.array()[0].msg,
+			oldInput: {
+				email: email,
+				password: password,
+			},
+			validationErrors: errors.array(),
+		});
+	}
+	//We can also put all this validation code in route also, but rn keeping it here only (thinking that its logic relateed code as well)
 	//lhs is email field in doc, rhs is const email
 	User.findOne({ email: email })
 		.then((user) => {
 			if (!user) {
 				//*flashing an err msg to the session (so it can persist even after redirecting, and once we pull the msg (in getLogin) from session, it will be dltd), method added by connect-flash package
 				//1st arg is key under which msg is stored, 2nd arg is msg
-				req.flash('error', 'Invalid email or password!');
-				return res.redirect('/login');
+				// req.flash('error', 'Invalid email or password!');
+				// return res.redirect('/login');
+
+				//*now instead of flashing here, we render the page again with errors passed in the view itself
+				return res.status('422').render('auth/login', {
+					path: '/login',
+					pageTitle: 'Login',
+					errorMessage: 'Invalid email or password!',
+					oldInput: {
+						email: email,
+						password: password,
+					},
+					// //adding obj with param as we are extracting param field in the view, adding both email and password to now show what exactly went wrong (or we could just remove validationErrors as in vid)
+					// validationErrors: [
+					// 	{
+					// 		param: 'email',
+					// 		param: 'password',
+					// 	},
+					// ],
+					validationErrors: [],
+				});
 			}
 
 			//if user exists, validating password
@@ -97,8 +142,19 @@ exports.postLogin = (req, res, next) => {
 						});
 					}
 
-					req.flash('error', 'Invalid email or password!');
-					res.redirect('/login');
+					// req.flash('error', 'Invalid email or password!');
+					// res.redirect('/login');
+
+					return res.status('422').render('auth/login', {
+						path: '/login',
+						pageTitle: 'Login',
+						errorMessage: 'Invalid email or password!',
+						oldInput: {
+							email: email,
+							password: password,
+						},
+						validationErrors: [],
+					});
 				})
 				.catch((err) => {
 					//we'll get err only when something goes wrong, not if passwords dont match
@@ -127,6 +183,14 @@ exports.postSignup = (req, res, next) => {
 			//returning array of errors (objects)
 			//*for now only taking the 1st one (but we should ouptut all errors) (working as rn in view, we added novalidate in form, or it would validate in browser itself). its msg field has been modified in auth routes in check('email').isEmail().withMessage('Please Enter a valid email')
 			errorMessage: errors.array()[0].msg,
+			//*sending this to be filled up again in input boxes so that if validation fails, user doesnt lose entered data
+			oldInput: {
+				email: email,
+				password: password,
+				confirmPassword: req.body.confirmPassword,
+			},
+			//*passed this for custom css styling in input in view (like if email and confirmPassword was wrong, the array will have 2 error objs with param field as email and confirmPassword, and then we can make those 2 inputs with red border)
+			validationErrors: errors.array(),
 		});
 	}
 

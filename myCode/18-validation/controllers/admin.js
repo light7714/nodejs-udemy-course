@@ -1,3 +1,5 @@
+const { validationResult } = require('express-validator');
+
 const Product = require('../models/product');
 
 const errorController = require('./error');
@@ -7,6 +9,10 @@ exports.getAddProduct = (req, res, next) => {
 		pageTitle: 'Add Product',
 		path: '/admin/add-product',
 		editing: false,
+		//when hasError is false, no need to pass product
+		hasError: false,
+		errorMessage: null,
+		validationErrors: [],
 	});
 };
 
@@ -15,6 +21,25 @@ exports.postAddProduct = (req, res, next) => {
 	const imageUrl = req.body.imageUrl;
 	const price = req.body.price;
 	const description = req.body.description;
+	const errors = validationResult(req);
+
+	if (!errors.isEmpty()) {
+		return res.status(422).render('admin/edit-product', {
+			pageTitle: 'Add Product',
+			path: '/admin/add-product',
+			editing: false,
+			//when hasError is true, we wanna fill input fields with product data (as hasError will be true when validation gone wrong)
+			hasError: true,
+			errorMessage: errors.array()[0].msg,
+			product: {
+				title: title,
+				imageUrl: imageUrl,
+				price: price,
+				description: description,
+			},
+			validationErrors: errors.array(),
+		});
+	}
 
 	//mongoose document
 	//* Mongoose queries are not promises. They have a .then() function for co and async/await as a convenience. If you need a fully-fledged promise, use the .exec() function.
@@ -63,6 +88,10 @@ exports.getEditProduct = (req, res, next) => {
 				path: '/admin/edit-product',
 				editing: editMode,
 				product: product,
+				hasError: false,
+				errorMessage: null,
+				validationErrors: [],
+				_id: prodId,
 			});
 		})
 		.catch((err) => {
@@ -77,6 +106,25 @@ exports.postEditProduct = (req, res, next) => {
 	const updatedPrice = req.body.price;
 	const updatedImageUrl = req.body.imageUrl;
 	const updatedDescription = req.body.description;
+	const errors = validationResult(req);
+
+	if (!errors.isEmpty()) {
+		return res.status(422).render('admin/edit-product', {
+			pageTitle: 'Edit Product',
+			path: '/admin/edit-product',
+			editing: true,
+			hasError: true,
+			errorMessage: errors.array()[0].msg,
+			product: {
+				title: updatedTitle,
+				imageUrl: updatedImageUrl,
+				price: updatedPrice,
+				description: updatedDescription,
+				_id: prodId,
+			},
+			validationErrors: errors.array(),
+		});
+	}
 
 	Product.findById(prodId)
 		.then((product) => {
