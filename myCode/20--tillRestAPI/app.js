@@ -10,6 +10,7 @@ const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
 const flash = require('connect-flash');
+const multer = require('multer');
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -33,14 +34,57 @@ const store = new MongoDBStore({
 //*csrfProtection can now be used as a middleware
 const csrfProtection = csrf();
 
+//*diskStorage is a storage engine, destination and filename as fns which multer will call for an incoming file
+const fileStorage = multer.diskStorage({
+	destination: (req, file, cb) => {
+		//1st arg is error msg to inform multer something is wrong with incoming file, if its null, we're telling multer its okay to store it, 2nd arg is path where we wanna store it
+		cb(null, 'images');
+	},
+	filename: (req, file, cb) => {
+		//originalname holds the original name as uploaded (with extension), filename holds a random hashed value (done this to ensure no 2 files have same name)
+		// cb(null, file.filename + '-' + file.originalname);
+		//but that wont work cus as made our own name, multer didnt autogenerate hashed value
+		cb(null, new Date().getTime() + '-' + file.originalname);
+	},
+});
+
+const fileFilter = (req, file, cb) => {
+	//1st arg is null if no err, 2nd is true if we want to store that file, flase if we dont want to store it (req.file will have undefined member)
+	//mimetype is like extension
+	if (
+		file.mimetype === 'image/png' ||
+		file.mimetype === 'image/jpg' ||
+		file.mimetype === 'image/jpeg'
+	) {
+		cb(null, true);
+	} else {
+		cb(null, false);
+	}
+};
+
 //*solution to queries and outputs being logged twice in console, as browser again sends a request when it doesnt find favicon
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
+//urlencoded means text data (so cant submit image for eg.)
 app.use(express.urlencoded({ extended: false }));
+
+//*.single() means we expect only 1 file (in each for data, as it'll go thru all till it finds a form with enctype multipart/form-data). image, cuz in form we write name="image"
+//will store image in an images folder with random name, doesnt have an extension rn
+// app.use(multer({dest: 'images'}).single(image));
+app.use(
+	multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
+);
+
 app.use(express.static(path.join(rootDir, 'public')));
+//also serving images statically (as we're storing path to them in the db)
+//*when serving static files, express will serve them as if they are on the root folder. But in views, as the path passed is /images/..., the get request will be sent to /images (but we can access images on /)
+// app.use(express.static(path.join(rootDir, 'images')));
+//this means that if we have a req that goes to /images, then serve the files statically
+app.use('/images', express.static(path.join(rootDir, 'images')));
+
 
 //*secret is used for signing the hash which stores id of session in the cookie, can pass anything (should be a long string).
 //resave: false means session wont be saved on every req received, but only if something changed in the session (improves performance)
@@ -75,7 +119,7 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-// 	throw new Error('hi');
+	// throw new Error('hi');
 	//*inside sync code, whenever we throw an error (not inside try catch ofc), the error handling middleware below will automatically catch this error, but in async code (like in then block) we have to pass the error obj in next
 	// throw new Error('Sync Dummy');
 
