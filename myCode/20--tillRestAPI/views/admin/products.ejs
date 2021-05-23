@@ -16,6 +16,7 @@
                                     </h1>
                                 </header>
                                 <div class="card__image">
+                                    <!-- / added here as earlier this page is loaded in an admin controller in admin route, so /admin gets added to the url, but now with / added, the path will not be relative, but absolute, so /admin wont be there in path -->
                                     <img src="/<%= product.imageUrl %>" alt="<%= product.title %>">
                                 </div>
                                 <div class="card__content">

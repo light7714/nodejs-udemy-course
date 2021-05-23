@@ -1,14 +1,32 @@
 const Product = require('../models/product');
 const Order = require('../models/order');
 
+const ITEMS_PER_PAGE = 1;
+
 exports.getProducts = (req, res, next) => {
+	const page = +req.query.page || 1;
+	let totalItems;
+
 	//mongoose static method find(), it returns all products instead of cursor. we can still get cursor by find().cursor()
 	Product.find()
+		.countDocuments()
+		.then((numProducts) => {
+			totalItems = numProducts;
+			return Product.find()
+				.skip((page - 1) * ITEMS_PER_PAGE)
+				.limit(ITEMS_PER_PAGE);
+		})
 		.then((products) => {
 			res.render('shop/product-list', {
 				prods: products,
-				pageTitle: 'All Products',
-				path: '/products',
+				pageTitle: 'Products',
+				path: '/product-list',
+				currentPage: page,
+				hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+				hasPreviousPage: page > 1,
+				nextPage: page + 1,
+				previousPage: page - 1,
+				lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
 			});
 		})
 		.catch((err) => {
@@ -46,16 +64,37 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
+	//we have query param page (1, 2, ..) embedded in links in view
+	//means if req.query.page is not true, then page will be 1 (cus if user visits just /, then also 1st page should be shown)
+	const page = +req.query.page || 1;
+	let totalItems;
+
+	//*we should ideally return cursor here..
 	Product.find()
+		.countDocuments()
+		.then((numProducts) => {
+			totalItems = numProducts;
+			return (
+				Product.find()
+					//*mongodb (and mongoose) fn skip(x), it skips 1st x amount of results
+					.skip((page - 1) * ITEMS_PER_PAGE)
+					//*limits the amount of results (for eg on 2nd page 1st 2 items skipped, but we need only item 3 and 4, not more than that)
+					.limit(ITEMS_PER_PAGE)
+			);
+		})
 		.then((products) => {
 			res.render('shop/index', {
 				prods: products,
 				pageTitle: 'Shop',
 				path: '/',
-				// moved to a res.locals in a middleware in app.js
-				// isAuthenticated: req.session.isLoggedIn,
-				// //method provided by csrf middleware (in app.js)
-				// csrfToken: req.csrfToken(),
+				currentPage: page,
+				//next page link on view will be there only when items are left
+				hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+				hasPreviousPage: page > 1,
+				//giving the view the next page number
+				nextPage: page + 1,
+				previousPage: page - 1,
+				lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
 			});
 		})
 		.catch((err) => {
