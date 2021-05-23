@@ -1,4 +1,4 @@
-# Has 20 (till upload), 21 module rn
+# Has 20 (till upload part), 21, 22 module rn
 
 Left out parts will be done later
 
