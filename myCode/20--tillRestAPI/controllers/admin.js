@@ -227,8 +227,45 @@ exports.getProducts = (req, res, next) => {
 };
 
 //now dlting products created by logged in user only
-exports.postDeleteProduct = (req, res, next) => {
-	const prodId = req.body.productId;
+// exports.postDeleteProduct = (req, res, next) => {
+// 	const prodId = req.body.productId;
+
+// 	Product.findById(prodId)
+// 		.then((product) => {
+// 			if (!product) {
+// 				return next(new Error('Product not found!'));
+// 			}
+// 			fileHelper.deleteFile(product.imageUrl);
+// 			//mongoose static method deleteOne
+// 			return Product.deleteOne({ _id: prodId, userId: req.user._id });
+// 		})
+// 		// .catch((err) => {
+// 		// 	//could do it this way too... then whats use of old way??
+// 		// 	next(err);
+// 		// });
+// 		.then((result) => {
+// 			if (result.deletedCount > 0) {
+// 				console.log('Destroyed the Product');
+// 				return req.user.removeFromCart(prodId).then(() => {
+// 					console.log('Removed Product from cart');
+// 					res.redirect('/admin/products');
+// 				});
+// 			}
+
+// 			console.log('Deleting the product not allowed');
+// 			res.redirect('/admin/products');
+// 		})
+// 		.catch((err) => {
+// 			// console.log('err in deleteOne() in admin.js:', err);
+// 			const error = new Error(err);
+// 			error.httpStatusCode = 500;
+// 			return next(error);
+// 		});
+// };
+
+exports.DeleteProduct = (req, res, next) => {
+	//we are sending delete http request and then calling this control, and these requests dont have req.body
+	const prodId = req.params.productId;
 
 	Product.findById(prodId)
 		.then((product) => {
@@ -248,17 +285,21 @@ exports.postDeleteProduct = (req, res, next) => {
 				console.log('Destroyed the Product');
 				return req.user.removeFromCart(prodId).then(() => {
 					console.log('Removed Product from cart');
-					res.redirect('/admin/products');
+ 					//res.redirect('/admin/products');
+					//express json function, pass js obj, it will be converted to json
+					res.status(200).json({
+						message: 'Success! Product Deleted',
+					});
 				});
 			}
 
-			console.log('Deleting the product now allowed');
-			res.redirect('/admin/products');
+			res.status(403).json({
+				message: 'You are not authorised to delete the product!',
+			});
+			console.log('Deleting the product not allowed');
+			// res.redirect('/admin/products');
 		})
 		.catch((err) => {
-			// console.log('err in deleteOne() in admin.js:', err);
-			const error = new Error(err);
-			error.httpStatusCode = 500;
-			return next(error);
+			res.status(500).json({ message: 'Deleting the product failed!' });
 		});
 };

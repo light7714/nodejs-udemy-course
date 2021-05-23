@@ -105,6 +105,7 @@ app.use(
 //* when not logged in, it'll create a session on which the msg (err msg rn) will be flashed, and then pulled out, but still that session will exist with empty flash obj. After logging in, in that same session isLoggedIn and user obj will be stored. SO new sessions are not created, on that same session data is stored (on that session only the csrf token is also there)
 
 //*next 2 middlewares come after initiliasing the session, as they use the session, will check incoming post (or any state changing) req for correct csrf token
+//looks for csrf token in body, query params and headers (in body it looks for _csrf name, it headers for csrf-token header)
 app.use(csrfProtection);
 app.use(flash());
 

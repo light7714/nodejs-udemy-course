@@ -31,3 +31,14 @@ To quickly sum it up: The LIMIT command allows you to restrict the amount of dat
 When using Sequelize, the official docs describe how to add pagination: https://sequelize.org/master/manual/model-querying-basics.html
 
 -> Not added pagination in admin pages
+
+## Asynchronous Javascript Requests
+till here, we sent an html page in each response (or redirected). But for some work we dont have to return an html page always. In many web apps we constantly change the existing page (but we'll cover that in rest api module).
+
+in async reqs here, but they contain data in JSON, its sent to a certain route, then we return a response in JSON (just some data).
+
+here, we will change delete product functionality to make it not send a new page after deletion.
+
+More on the fetch API: https://developers.google.com/web/updates/2015/03/introduction-to-fetch
+
+More on AJAX Requests: https://developer.mozilla.org/en-US/docs/Web/Guide/AJAX/Getting_Started
