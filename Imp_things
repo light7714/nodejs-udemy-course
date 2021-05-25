@@ -47,3 +47,9 @@ multer
 
 Dev-dependencies:
 nodemon
+
+
+REST API project dependencies:
+Backend:
+npm install --save express
+npm install --save-dev nodemon

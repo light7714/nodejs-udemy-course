@@ -10,6 +10,7 @@ const deleteProduct = (btn) => {
 	//we're not sending any json data (as it has no body), if we did send, then we'll have to parse json data received on backend
 	//by default sending request to same server
 	fetch('/admin/product/' + prodId, {
+        //default method is get
 		method: 'DELETE',
 		//csrf looks for csrf token in body, query params and headers (in body it looks for _csrf name, it headers for csrf-token header)
 		headers: {
@@ -18,6 +19,7 @@ const deleteProduct = (btn) => {
 	})
 		.then((result) => {
 			// console.log(result);
+            //this method also waits fro teh whole body to be stream
 			return result.json();
 		})
 		.then((data) => {
