@@ -4,6 +4,7 @@ const path = require('path');
 const { validationResult } = require('express-validator');
 
 const Post = require('../models/post');
+const User = require('../models/user');
 
 exports.getPosts = (req, res, next) => {
 	const currentPage = req.query.page || 1;
@@ -55,27 +56,42 @@ exports.createPost = (req, res, next) => {
 	}
 	//req.file.path holds the path to the file as it was stored on my server (added by multer)
 	const imageUrl = req.file.path;
-
 	const title = req.body.title;
 	const content = req.body.content;
-	//imageurl is temp for now
+	let creator;
+
+	//req.userId (in string) is the id of the currently logged in user, added in is-auth.js, mongoose will convert it (due to model post)
+	//now we created a new post assigned to that logged in user
 	const post = new Post({
 		title: title,
 		content: content,
 		imageUrl: imageUrl,
-		creator: {
-			name: 'Shubham',
-		},
+		creator: req.userId,
 	});
 	post.save()
+		.then((result) => {
+			//returning the currently logged in user
+			return User.findById(req.userId);
+		})
+		.then((user) => {
+			creator = user;
+			// in user model, posts is an array of postIds, but even with this syntax mongoose will automatically extract the postId from post and push that
+			user.posts.push(post);
+			return user.save();
+		})
 		.then((result) => {
 			// console.log('result of post.save() in feed.js:', result);
 			//201 ->  success + a resource was created
 			res.status(201).json({
 				message: 'Post created successfully',
-				post: result,
+				post: post,
+				creator: {
+					_id: creator._id,
+					name: creator.name,
+				},
 			});
 		})
+
 		.catch((err) => {
 			// console.log('err in save() in feed.js:', err);
 			//here in the starting err.statusCode wont exist ofc, but theoretically if the code above was changed where i throw my own errors, then i would need to check
@@ -96,7 +112,7 @@ exports.getPost = (req, res, next) => {
 				const error = new Error('Could not find post');
 				//404 ->  not found
 				error.statusCode(404);
-				//as we're throwing error here (not calling next(error), then the next catch block will be reached, and there we're calling next(err))
+				//as we're throwing error here in then block (not calling next(error), then the next catch block will be reached, and there we're calling next(err))
 				throw error;
 			}
 			res.status(200).json({
@@ -150,6 +166,13 @@ exports.updatePost = (req, res, next) => {
 				throw error;
 			}
 
+			//now checking if the id in creator field (creator stores id only) in a post is equal to id of currently logged in user
+			if (post.creator.toString() !== req.userId) {
+				const error = new Error('Not Authorized!');
+				error.statusCode = 403;
+				throw error;
+			}
+
 			//means image has changed
 			if (imageUrl !== post.imageUrl) {
 				clearImage(post.imageUrl);
@@ -184,12 +207,27 @@ exports.deletePost = (req, res, next) => {
 				throw error;
 			}
 
+			//now checking if the id in creator field (creator stores id only) in a post is equal to id of currently logged in user
+			if (post.creator.toString() !== req.userId) {
+				const error = new Error('Not Authorized!');
+				error.statusCode = 403;
+				throw error;
+			}
+
 			//check logged in user later
 			clearImage(post.imageUrl);
 			return Post.findByIdAndRemove(postId);
 		})
 		.then((result) => {
-			console.log(result);
+			//after deleting the post, need to delete the post's id from the user doc (who created the post) (posts field is an array of user ids)
+			return User.findById(req.userId);
+		})
+		.then((user) => {
+			//mongoose method pull, need to pass id of the post we need to remove
+			user.posts.pull(postId);
+			return user.save();
+		})
+		.then((result) => {
 			res.status(200).json({ message: 'Deleted the post' });
 		})
 		.catch((err) => {
@@ -206,6 +244,6 @@ const clearImage = (filePath) => {
 		if (err) {
 			console.log('err in unlink in clearImage in feed.js:', err);
 		}
-		console.log('err in unlinddk in clearImage in feed.js:', err);
+		// console.log('err in unlinddk in clearImage in feed.js:', err);
 	});
 };

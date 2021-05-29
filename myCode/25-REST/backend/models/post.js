@@ -16,9 +16,10 @@ const postSchema = new Schema(
 			type: String,
 			required: true,
 		},
-		//will later be a link to an user
+		//now refers to a user
 		creator: {
-			type: Object,
+			type: Schema.Types.ObjectId,
+			ref: 'User',
 			required: true,
 		},
 	},

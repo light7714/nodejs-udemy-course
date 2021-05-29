@@ -51,5 +51,5 @@ nodemon
 
 REST API project dependencies:
 Backend:
-npm install --save express express-validator mongoose dotenv multer
+npm install --save express express-validator mongoose dotenv multer bcryptjs jsonwebtoken
 npm install --save-dev nodemon

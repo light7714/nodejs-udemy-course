@@ -22,7 +22,11 @@ class Feed extends Component {
 	};
 
 	componentDidMount() {
-		fetch('URL')
+		fetch('http://localhost:8080/auth/status', {
+			headers: {
+				Authorization: 'Bearer ' + this.props.token,
+			},
+		})
 			.then((res) => {
 				if (res.status !== 200) {
 					throw new Error('Failed to fetch user status.');
@@ -51,7 +55,13 @@ class Feed extends Component {
 			this.setState({ postPage: page });
 		}
 		//will fetch all posts from backend
-		fetch(`http://localhost:8080/feed/posts?page=${page}`)
+		//we'll be passing the jwt in the headers (for all requests) (not adding content type header, as we arent sending any data here)
+		//*bearer (plus whitespace) is just convention to identify that the token here is authentication token, typically used for jwt
+		fetch(`http://localhost:8080/feed/posts?page=${page}`, {
+			headers: {
+				Authorization: 'Bearer ' + this.props.token,
+			},
+		})
 			.then((res) => {
 				if (res.status !== 200) {
 					throw new Error('Failed to fetch posts.');
@@ -78,7 +88,16 @@ class Feed extends Component {
 
 	statusUpdateHandler = (event) => {
 		event.preventDefault();
-		fetch('URL')
+		fetch('http://localhost:8080/auth/status', {
+			method: 'PATCH',
+			headers: {
+				Authorization: 'Bearer ' + this.props.token,
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				status: this.state.status,
+			}),
+		})
 			.then((res) => {
 				if (res.status !== 200 && res.status !== 201) {
 					throw new Error("Can't update status!");
@@ -149,6 +168,9 @@ class Feed extends Component {
 			// 	content: postData.content,
 			// }),
 			body: formData,
+			headers: {
+				Authorization: 'Bearer ' + this.props.token,
+			},
 		})
 			.then((res) => {
 				if (res.status !== 200 && res.status !== 201) {
@@ -202,6 +224,9 @@ class Feed extends Component {
 		this.setState({ postsLoading: true });
 		fetch(`http://localhost:8080/feed/post/${postId}`, {
 			method: 'DELETE',
+			headers: {
+				Authorization: 'Bearer ' + this.props.token,
+			},
 		})
 			.then((res) => {
 				if (res.status !== 200 && res.status !== 201) {
