@@ -214,8 +214,7 @@ exports.deletePost = (req, res, next) => {
 				throw error;
 			}
 
-			//check logged in user later
-			clearImage(post.imageUrl);
+			clearImage(post.imageUrl);	
 			return Post.findByIdAndRemove(postId);
 		})
 		.then((result) => {

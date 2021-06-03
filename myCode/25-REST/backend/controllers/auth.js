@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const User = require('../models/user');
-const user = require('../models/user');
 
 exports.signup = (req, res, next) => {
 	const errors = validationResult(req);
