@@ -6,34 +6,65 @@ const { validationResult } = require('express-validator');
 const Post = require('../models/post');
 const User = require('../models/user');
 
-exports.getPosts = (req, res, next) => {
-	const currentPage = req.query.page || 1;
-	//same value as in frontend (we could pass this to frontend too, but not doing that here)
-	const perPage = 2;
-	let totalItems;
-	Post.find()
-		.countDocuments()
-		.then((count) => {
-			totalItems = count;
+// exports.getPosts = (req, res, next) => {
+// 	const currentPage = req.query.page || 1;
+// 	//same value as in frontend (we could pass this to frontend too, but not doing that here)
+// 	const perPage = 2;
+// 	let totalItems;
+// 	Post.find()
+// 		.countDocuments()
+// 		.then((count) => {
+// 			totalItems = count;
 
-			return Post.find()
-				.skip((currentPage - 1) * perPage)
-				.limit(perPage);
-		})
-		.then((posts) => {
-			//*converts js obj to json, sends it with correct headers (content-type) (here it'll be application/json) (in browser we need to set manually if using fetch api)
-			res.status(200).json({
-				message: 'Fetched posts successfully',
-				posts: posts,
-				totalItems: totalItems,
-			});
-		})
-		.catch((err) => {
-			if (!err.statusCode) {
-				err.statusCode = 500;
-			}
-			next(err);
+// 			return Post.find()
+				//whats this populate??
+//				.populate('creator')
+// 				.skip((currentPage - 1) * perPage)
+// 				.limit(perPage);
+// 		})
+// 		.then((posts) => {
+// 			//*converts js obj to json, sends it with correct headers (content-type) (here it'll be application/json) (in browser we need to set manually if using fetch api)
+// 			res.status(200).json({
+// 				message: 'Fetched posts successfully',
+// 				posts: posts,
+// 				totalItems: totalItems,
+// 			});
+// 		})
+// 		.catch((err) => {
+// 			if (!err.statusCode) {
+// 				err.statusCode = 500;
+// 			}
+// 			next(err);
+// 		});
+// };
+
+//* async await syntax of above code
+//we have to write async in front of the function in which we wanna use await
+//we can write synchronous looking code with this, but still it is asynchronous code. behind the scenes, for each await, an implicit then block gets added.
+//in v14.3 of node, we can use top level await, that is, we can use await on a promise outside a function, without using the async keyword. inside a fn, we would still use async.
+//can use just await, like: await post.save();
+exports.getPost = async (req, res, next) => {
+	const currentPage = req.query.page || 1;
+	const perPage = 2;
+	//just like all then blocks have a single catch, we're doing here that all await blocks have a single catch
+	try {
+		const totalItems = await Post.find().countDocuments();
+		const posts = await Post.find()
+			.populate('creator')
+			.skip((currentPage - 1) * perPage)
+			.limit(perPage);
+
+		res.status(200).json({
+			message: 'Fetched posts successfully',
+			posts: posts,
+			totalItems: totalItems,
 		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
 };
 
 //not using put, as for multiple posts we might append too (put-> create or overwrite a resource, post->adding, appending)
@@ -214,7 +245,7 @@ exports.deletePost = (req, res, next) => {
 				throw error;
 			}
 
-			clearImage(post.imageUrl);	
+			clearImage(post.imageUrl);
 			return Post.findByIdAndRemove(postId);
 		})
 		.then((result) => {
