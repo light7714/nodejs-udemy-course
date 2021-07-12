@@ -82,7 +82,7 @@ exports.login = (req, res, next) => {
 				{ expiresIn: '1h' }
 			);
 
-			//in frontend we look for the user id and store it
+			//in frontend we look for the user id and store it.	(whats the use, when token already has userId, and we extract it in is-auth.js ??)
 			res.status(200).json({
 				token: token,
 				userId: loadedUser._id.toString(),

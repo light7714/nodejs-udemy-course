@@ -6,9 +6,11 @@ const { validationResult } = require('express-validator');
 const Post = require('../models/post');
 const User = require('../models/user');
 
+//*here, we can accept currentPage and perPage(limit), but if frontend wants to have the pagination where all items appear on the same page when needed, instead of page numbers, then it would be better to have offset and limit as query params. this method allows frontend to have flexibility to choose type of pagination. https://developer.box.com/guides/api-calls/pagination/offset-based/
+
 // exports.getPosts = (req, res, next) => {
 // 	const currentPage = req.query.page || 1;
-// 	//same value as in frontend (we could pass this to frontend too, but not doing that here)
+// 	//same value as in frontend (we could pass this to frontend too, or get from frontend in query params, but not doing that here)
 // 	const perPage = 2;
 // 	let totalItems;
 // 	Post.find()
@@ -17,7 +19,7 @@ const User = require('../models/user');
 // 			totalItems = count;
 
 // 			return Post.find()
-				//whats this populate??
+				//populates the creator field with the appropriate values from User table
 //				.populate('creator')
 // 				.skip((currentPage - 1) * perPage)
 // 				.limit(perPage);
@@ -41,9 +43,9 @@ const User = require('../models/user');
 //* async await syntax of above code
 //we have to write async in front of the function in which we wanna use await
 //we can write synchronous looking code with this, but still it is asynchronous code. behind the scenes, for each await, an implicit then block gets added.
-//in v14.3 of node, we can use top level await, that is, we can use await on a promise outside a function, without using the async keyword. inside a fn, we would still use async.
+//in v14.3 of node, we can use top level await, that is, we can use await on a promise outside a function, without using the async keyword (but only in a module file..). inside a fn, we would still use async.
 //can use just await, like: await post.save();
-exports.getPost = async (req, res, next) => {
+exports.getPosts = async (req, res, next) => {
 	const currentPage = req.query.page || 1;
 	const perPage = 2;
 	//just like all then blocks have a single catch, we're doing here that all await blocks have a single catch
@@ -91,7 +93,7 @@ exports.createPost = (req, res, next) => {
 	const content = req.body.content;
 	let creator;
 
-	//req.userId (in string) is the id of the currently logged in user, added in is-auth.js, mongoose will convert it (due to model post)
+	//req.userId (in string) is the id of the currently logged in user, added in is-auth.js, mongoose will convert it to ObjectId (due to model Post)
 	//now we created a new post assigned to that logged in user
 	const post = new Post({
 		title: title,
@@ -106,7 +108,7 @@ exports.createPost = (req, res, next) => {
 		})
 		.then((user) => {
 			creator = user;
-			// in user model, posts is an array of postIds, but even with this syntax mongoose will automatically extract the postId from post and push that
+			// in user model, posts is an array of postIds, but even with this syntax mongoose will automatically extract the postId from post and push that in the array.
 			user.posts.push(post);
 			return user.save();
 		})
