@@ -3,6 +3,7 @@ const path = require('path');
 
 const { validationResult } = require('express-validator');
 
+const io = require('../socket');
 const Post = require('../models/post');
 const User = require('../models/user');
 
@@ -19,7 +20,7 @@ const User = require('../models/user');
 // 			totalItems = count;
 
 // 			return Post.find()
-				//populates the creator field with the appropriate values from User table
+//populates the creator field with the appropriate values from User table
 //				.populate('creator')
 // 				.skip((currentPage - 1) * perPage)
 // 				.limit(perPage);
@@ -53,6 +54,8 @@ exports.getPosts = async (req, res, next) => {
 		const totalItems = await Post.find().countDocuments();
 		const posts = await Post.find()
 			.populate('creator')
+			//sorted by descending order
+			.sort({ createdAt: -1 })
 			.skip((currentPage - 1) * perPage)
 			.limit(perPage);
 
@@ -70,8 +73,7 @@ exports.getPosts = async (req, res, next) => {
 };
 
 //not using put, as for multiple posts we might append too (put-> create or overwrite a resource, post->adding, appending)
-//could also have named postPost
-exports.createPost = (req, res, next) => {
+exports.createPost = async (req, res, next) => {
 	const errors = validationResult(req);
 	if (!errors.isEmpty()) {
 		//validation is already being done on the frontend tho, also adding in backend
@@ -101,39 +103,74 @@ exports.createPost = (req, res, next) => {
 		imageUrl: imageUrl,
 		creator: req.userId,
 	});
-	post.save()
-		.then((result) => {
-			//returning the currently logged in user
-			return User.findById(req.userId);
-		})
-		.then((user) => {
-			creator = user;
-			// in user model, posts is an array of postIds, but even with this syntax mongoose will automatically extract the postId from post and push that in the array.
-			user.posts.push(post);
-			return user.save();
-		})
-		.then((result) => {
-			// console.log('result of post.save() in feed.js:', result);
-			//201 ->  success + a resource was created
-			res.status(201).json({
-				message: 'Post created successfully',
-				post: post,
-				creator: {
-					_id: creator._id,
-					name: creator.name,
-				},
-			});
-		})
 
-		.catch((err) => {
-			// console.log('err in save() in feed.js:', err);
-			//here in the starting err.statusCode wont exist ofc, but theoretically if the code above was changed where i throw my own errors, then i would need to check
-			if (!err.statusCode) {
-				//500 -> some server side error
-				err.statusCode = 500;
-			}
-			next(err);
+	try {
+		await post.save();
+		const user = await User.findById(req.userId);
+		user.posts.push(post);
+		await user.save();
+
+		//informing all users that a post is created
+		//io written here is the object exported from socket.js file, getIO gives back the real io object (socket object) on which we can apply methods given by socket.io
+		//*emit() method sends a msg to all users (sockets)     (there is another method broadcast, on the socket object we got when connection estabilished, that sends msg to all users except the socket on which its called)
+		//*1st arg is event name we wanna define, 2nd is data we wanna send, action key is to inform users what happened (channel is posts, action is create)
+		//we can send any data tho, but this is the setup we defined
+		io.getIO().emit('posts', {
+			action: 'create',
+			post: {
+				...post._doc,
+				creator: { _id: req.userId, name: user.name },
+			},
 		});
+
+		res.status(201).json({
+			message: 'Post created successfully',
+			post: post,
+			creator: {
+				_id: user._id,
+				name: user.name,
+			},
+		});
+	} catch (err) {
+		if (!err.statusCode) {
+			err.statusCode = 500;
+		}
+		next(err);
+	}
+
+	// post.save()
+	// 	.then((result) => {
+	// 		//returning the currently logged in user
+	// 		return User.findById(req.userId);
+	// 	})
+	// 	.then((user) => {
+	// 		creator = user;
+	// 		// in user model, posts is an array of postIds, but even with this syntax mongoose will automatically extract the postId from post and push that in the array.
+	// 		user.posts.push(post);
+	// 		return user.save();
+	// 	})
+	// 	.then((result) => {
+	// 		// console.log('result of post.save() in feed.js:', result);
+	// 		//201 ->  success + a resource was created
+	// 		res.status(201).json({
+	// 			message: 'Post created successfully',
+	// 			post: post,
+	// 			creator: {
+	// 				_id: creator._id,
+	// 				name: creator.name,
+	// 			},
+	// 		});
+	// 	})
+
+	// 	.catch((err) => {
+	// 		// console.log('err in save() in feed.js:', err);
+	// 		//here in the starting err.statusCode wont exist ofc, but theoretically if the code above was changed where i throw my own errors, then i would need to check
+	// 		if (!err.statusCode) {
+	// 			//500 -> some server side error
+	// 			err.statusCode = 500;
+	// 		}
+	// 		next(err);
+	// 	});
 };
 
 exports.getPost = (req, res, next) => {
@@ -192,6 +229,7 @@ exports.updatePost = (req, res, next) => {
 	}
 
 	Post.findById(postId)
+		.populate('creator')
 		.then((post) => {
 			if (!post) {
 				const error = new Error('Could not find post');
@@ -200,7 +238,8 @@ exports.updatePost = (req, res, next) => {
 			}
 
 			//now checking if the id in creator field (creator stores id only) in a post is equal to id of currently logged in user
-			if (post.creator.toString() !== req.userId) {
+			//._id added in websockets module
+			if (post.creator._id.toString() !== req.userId) {
 				const error = new Error('Not Authorized!');
 				error.statusCode = 403;
 				throw error;
@@ -217,6 +256,11 @@ exports.updatePost = (req, res, next) => {
 			return post.save();
 		})
 		.then((result) => {
+			io.getIO().emit('posts', {
+				action: 'update',
+				post: result,
+			});
+
 			res.status(200).json({
 				message: 'Post Updated',
 				post: result,
@@ -260,6 +304,7 @@ exports.deletePost = (req, res, next) => {
 			return user.save();
 		})
 		.then((result) => {
+			io.getIO().emit('posts', { action: 'delete', post: postId });
 			res.status(200).json({ message: 'Deleted the post' });
 		})
 		.catch((err) => {

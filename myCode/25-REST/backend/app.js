@@ -88,8 +88,29 @@ mongoose.set('useUnifiedTopology', true);
 mongoose
 	.connect(MONGODB_URI)
 	.then((result) => {
-		app.listen(PORT, () => {
+		//listen method actually returns us a new node server obj
+		const server = app.listen(PORT, () => {
 			console.log(`Listening on port ${PORT}`);
+		});
+
+		//websockets connection
+		//require('socket.io'); returns a function which accepts the node server we made
+		//io is basically the socket object
+		//in newer version of socket.io, we need to explicitly handle cors: https://socket.io/docs/v3/handling-cors/
+		// const io = require('socket.io')(server, {
+		// 	cors: {
+		// 		origin: 'http://localhost:3000',
+		// 		methods: ['GET', 'POST'],
+		// 	},
+		// });
+
+		//we also want to share the io instance to all files (as when we create post, we want to inform all users there only), so creating the socket connection in socket.js file
+		const io = require('./socket').init(server);
+
+		//setting up event listeners with .on()
+		//when a new client connects, the fn is executed. arg to the fn (socket here) is the client connection. this fn will be executed for every new client.
+		io.on('connection', (socket) => {
+			console.log('Client connected!');
 		});
 	})
 	.catch((err) => {

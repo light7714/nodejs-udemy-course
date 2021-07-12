@@ -8,3 +8,10 @@
 <img src="README_files/auth_working.png" width="500" height="500" alt="working of authentication in rest">
 
 <img src="README_files/token.png" width="500" height="500" alt="token (JWT)">
+
+
+# Websockets 
+When a user adds a post, another user should see it instantly, that is what we'll do realtime using web sockets here. We need to add code to our frontend and backend
+
+
+->  something wrong in rendering logic, so post not showing, but websockets working....

@@ -53,3 +53,5 @@ REST API project dependencies:
 Backend:
 npm install --save express express-validator mongoose dotenv multer bcryptjs jsonwebtoken socket.io
 npm install --save-dev nodemon
+
+In frontend, we install socket.io-client
