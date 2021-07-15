@@ -1,4 +1,6 @@
-Deploying (my) SSR code here
+# Deploying (my) SSR code here
+
+-- use npm run start:dev to start server with nodemon
 
 -   Instead of making an .env file, we can also make nodemon.json file (nodemon config)
 
@@ -33,3 +35,10 @@ if (process.env.NODE_ENV !== 'production') {
 ```
 
 NODE_ENV is an env variable set automatically by hosting providers, but for development, setting it on own. Express uses that variable to determine env mode, for prodution it will change certain things, like reducing details for errors, optimise things, etc.
+
+-- setting secure headers
+using helmet package for it, will add certain headers to responses we send, see docs to see which headers it sets to mitigate some attack patterns.
+
+-- compression package used for asset compression. only files above 1kb are compressed. img files are not compressed, as it makes them longer to load. Many hosting providers do it for us.
+
+-- morgan package for logging. often logging is done by hosting providers though. not pushing log file to github.

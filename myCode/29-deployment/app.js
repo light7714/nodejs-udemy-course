@@ -1,5 +1,6 @@
 const path = require('path');
 const process = require('process');
+const fs = require('fs');
 
 require('dotenv').config();
 
@@ -11,6 +12,9 @@ const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
 const flash = require('connect-flash');
 const multer = require('multer');
+const helmet = require('helmet');
+const compression = require('compression');
+const morgan = require('morgan');
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -70,6 +74,22 @@ app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
+
+// using helmet package for it, will add certain headers to responses we send, see docs to see which headers it sets to mitigate some attack patterns.
+app.use(helmet());
+
+//for compression of assets, only files above 1kb are compressed. img files are not compressed, as it makes them longer to load
+app.use(compression());
+
+// 'a' flag means append
+const accessLogStream = fs.createWriteStream(
+	path.join(__dirname, 'access.log'),
+	{ flags: 'a' }
+);
+
+// morgan package for logging. logs out info on console by default, stream value streams the logs to the writable stream we created (which is to a file named access.log)
+//often logging is done by hosting providers though
+app.use(morgan('combined', { stream: accessLogStream }));
 
 //urlencoded means text data (so cant submit image for eg.)
 app.use(express.urlencoded({ extended: false }));
