@@ -1,6 +1,6 @@
 # Has 20 (till upload part), 21, 22 module rn
 
-Left out parts will be done later
+Does not have downloading invoice and payments part.
 
 ## Uploading images
 
