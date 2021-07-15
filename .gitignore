@@ -2,3 +2,5 @@ node_modules
 private.*
 .env
 *.log
+*.key
+*.cert
