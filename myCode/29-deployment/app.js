@@ -205,18 +205,20 @@ mongoose.set('useUnifiedTopology', true);
 mongoose
 	.connect(MONGODB_URI)
 	.then((result) => {
-		// app.listen(PORT, () => {
-		// 	console.log(`Listening on port ${PORT}`);
-		// 	console.log('NODE_ENV env variable:', process.env.NODE_ENV);
-		// });
+		app.listen(PORT, () => {
+			console.log(`Listening on port ${PORT}`);
+			console.log('NODE_ENV env variable:', process.env.NODE_ENV);
+		});
+
+		//not using below https code, as we wanna let hosting provider handle tls certificate
 
 		//1st arg configures the server, we need to point it to our pvt key and cert, 2nd arg is req handler (here, our express application)
-		https
-			.createServer({ key: privateKey, cert: certificate }, app)
-			.listen(PORT, () => {
-				console.log(`Listening on port ${PORT}`);
-				console.log('NODE_ENV env variable:', process.env.NODE_ENV);
-			});
+		// https
+		// 	.createServer({ key: privateKey, cert: certificate }, app)
+		// 	.listen(PORT, () => {
+		// 		console.log(`Listening on port ${PORT}`);
+		// 		console.log('NODE_ENV env variable:', process.env.NODE_ENV);
+		// 	});
 	})
 	.catch((err) => {
 		console.log('err in mongoose.connect in app.js:', err);

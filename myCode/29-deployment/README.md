@@ -1,3 +1,5 @@
+## Note: The actual deployment part to heroku is in a different git repo, as we had to add the project's git repo as a remote to heroku git, and here the git repo contains all the modules.
+
 # Deploying (my) SSR code here
 
 -- use npm run start:dev to start server with nodemon
@@ -43,7 +45,7 @@ using helmet package for it, will add certain headers to responses we send, see 
 
 -- morgan package for logging. often logging is done by hosting providers though. not pushing log file to github.
 
-### TLS
+## TLS
 
 server has public and private key. (public to encrypt, pvt to decrypt). In TLS certificate, we bind that public key to the server identity (could be anything, like admin email, we set that data when creating certificate.) That tls certificate therefore connects a public key and a server, and its sent to client, so client is aware of public key and knows it belongs to our server. <br>
 Usually we use a certificate authority, tho we can make our own certificate too, <b>which we'll do here</b>. but when we do that, the browser does not trusts that info there is correct, and client can get warnings like this page uses ssl but doesn't seem to be secure. <br>
@@ -61,3 +63,9 @@ will give pvt and public key packaged in certificate <br>
 some options will be asked on terminal, must set common name to localhost rn, it has to be set to our domain (if we used this self signed cert on the server we deploy to, and we host it on example.com, then example.com needs to be typed here). 2 new files server.cert and server.key (pvt key) are added.
 
 Not pushing server.key and server.cert to github, tho can push server.cert
+
+## hosting
+<img src="README_files/hosting.png">
+Our own code is not directly exposed to the web, its exposed to the manages server (given by hosting provider), which then communicates to the users through a public server gateway.
+
+for deploying to heroku, using heroku git (can use github and container registry, see after creating an app). its basically a heroku remote repo.
