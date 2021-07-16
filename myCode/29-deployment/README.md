@@ -1,4 +1,4 @@
-## Note: The actual deployment part to heroku is in a different git repo, as we had to add the project's git repo as a remote to heroku git, and here the git repo contains all the modules.
+## Note: The actual deployment part to heroku is in a different git repo (boom-shopping), as we had to add the project's git repo as a remote to heroku git, and here the git repo contains all the modules.
 
 # Deploying (my) SSR code here
 
@@ -69,3 +69,6 @@ Not pushing server.key and server.cert to github, tho can push server.cert
 Our own code is not directly exposed to the web, its exposed to the manages server (given by hosting provider), which then communicates to the users through a public server gateway.
 
 for deploying to heroku, using heroku git (can use github and container registry, see after creating an app). its basically a heroku remote repo.
+
+
+Actual deployment to heroku in another repo (boom-shopping)
